@@ -1,0 +1,20 @@
+[project]
+name = "lessonsschedulebot"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.13"
+dependencies = [
+    "aiogram>=3.22.0",
+    "mypy==1.19.0",
+    "psycopg==3.3.1",
+    "python-dotenv==1.2.1",
+    "sqlalchemy>=2.0.44",
+]
+
+[tool.ruff]
+select = ['ALL']
+
+[tool.ruff.format]
+organize-imports = true
+indent-style = "vertical-hanging"
+
