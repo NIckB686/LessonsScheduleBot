@@ -1,9 +1,13 @@
-from pydantic import HttpUrl, SecretStr, computed_field
+from pydantic import SecretStr, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    """Класс, читающий настройки из переменных окружения и .env файла."""
+
+    model_config = SettingsConfigDict(env_file=".env",
+                                      env_file_encoding="utf-8",
+                                      extra="ignore")
 
     # Bot settings
     tg_bot_token: SecretStr
@@ -18,9 +22,9 @@ class Settings(BaseSettings):
     webhook_path: str
 
     @computed_field
-    @property
     def webhook_url(self) -> str:
+        """Полный URL вебхука."""
         return f"{self.webhook_base_url}{self.webhook_path}"
 
 
-settings = Settings()
+settings = Settings()  # type: ignore  # noqa: PGH003

@@ -1,3 +1,4 @@
+import logging
 from itertools import groupby
 
 from aiogram import Router
@@ -7,6 +8,8 @@ from aiohttp import ClientSession
 
 from app.models import days_of_week
 from app.network import _register, get_sched, time_key
+
+logger = logging.getLogger(__name__)
 
 router = Router()
 
@@ -19,4 +22,4 @@ async def get_schedule(message: Message):
                           key=lambda x: x.week_day_number)
     for day, group in lessons:
         text = f'{str(days_of_week[day])}\n\n' + '\n'.join(str(lesson) for lesson in group)
-        await message.reply(text)
+        await message.reply(text, parse_mode='HTML')
