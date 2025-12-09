@@ -18,7 +18,8 @@ router = Router()
 async def get_schedule(message: Message):
     async with ClientSession() as session:
         await _register(session)
-        lessons = groupby(sorted(await get_sched(session), key=lambda x: (x.week_day_number, time_key(x))),
+        lessons = groupby(sorted(await get_sched(session),
+                                 key=lambda x: (x.week_day_number, time_key(x))),
                           key=lambda x: x.week_day_number)
     for day, group in lessons:
         text = f'{str(days_of_week[day])}\n\n' + '\n'.join(str(lesson) for lesson in group)

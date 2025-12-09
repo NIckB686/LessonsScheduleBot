@@ -27,4 +27,4 @@ class Settings(BaseSettings):
         return f"{self.webhook_base_url}{self.webhook_path}"
 
 
-settings = Settings()  # type: ignore  # noqa: PGH003
+settings = Settings()
