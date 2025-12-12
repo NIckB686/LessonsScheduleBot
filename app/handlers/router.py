@@ -5,7 +5,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message
 
 from app.api import get_lessons
-from app.models import days_of_week
+from app.reformat_lessons import reformat_lessons
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +15,6 @@ router = Router()
 @router.message(CommandStart())
 async def get_schedule(message: Message):
     lessons = await get_lessons()
-    for day, group in lessons:
-        text = f'{str(days_of_week[day])}\n\n' + '\n'.join(str(lesson) for lesson in group)
-        await message.reply(text, parse_mode='HTML')
+    reformatted_lessons = reformat_lessons(lessons)
+    for text in reformatted_lessons:
+        await message.reply(**text.as_kwargs())
