@@ -1,7 +1,6 @@
 import datetime
 import logging
-from itertools import groupby
-from typing import Any, Iterable, LiteralString
+from typing import Any
 
 from aiohttp import ClientSession
 
@@ -10,7 +9,7 @@ from app.models import Lesson, LessonsData
 logger = logging.getLogger(__name__)
 
 
-async def _register(session: ClientSession) -> int:
+async def register(session: ClientSession) -> int:
     async with session.get("https://lk.gubkin.ru/schedule/") as resp:
         return resp.status
 
@@ -63,28 +62,6 @@ async def get_schedule(session: ClientSession) -> dict | None:
             return org
     logger.debug('Расписание не найдено')
     return None
-
-
-def time_key(lesson: Lesson) -> datetime.datetime:
-    start = lesson.time.split("-")[0]
-    return datetime.datetime.strptime(start, "%H:%M")
-
-
-def get_lesson_teachers(lesson: dict) -> tuple[LiteralString, ...]:
-    if "teachers" in lesson["changes"]:
-        teachers_list = lesson['changes']['teachers']
-    else:
-        teachers_list = lesson['teachers']
-    teachers = tuple(
-        (' '.join(tuple((teacher['lastName'], teacher['firstName'], teacher['patronymic'])))
-         for teacher in teachers_list))
-    return teachers
-
-
-def group_and_sort_lessons(lessons: Iterable[Lesson]) -> list[list[Lesson]]:
-    sorted_lessons = sorted(lessons, key=lambda x: (x.week_day_number, time_key(x)))
-    grouped_lessons = groupby(sorted_lessons, key=lambda x: x.week_day_number)
-    return [list(group) for _, group in grouped_lessons]
 
 
 async def get_sched(session: ClientSession) -> list[Lesson]:
