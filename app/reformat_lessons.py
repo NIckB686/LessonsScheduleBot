@@ -21,7 +21,9 @@ def reformat_lesson(lesson: Lesson) -> Text:
     return res
 
 
-def reformat_lessons(lessons: Iterable[tuple[str, Iterable[Lesson]]]) -> Generator[Text, Any, None]:
+def reformat_lessons(
+    lessons: Iterable[tuple[str, Iterable[Lesson]]],
+) -> Generator[Text, Any, None]:
     for day, group in lessons:
         text = as_list(
             Bold(day),

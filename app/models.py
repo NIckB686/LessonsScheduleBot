@@ -13,43 +13,43 @@ days_of_week = {
 }
 
 subgroup_dict = {
-    0: '',
-    1: '1-группа',
-    2: '2-группа',
+    0: "",
+    1: "1-группа",
+    2: "2-группа",
 }
 
 
 class Lesson(BaseModel):
     changes: list | dict = Field(exclude=True)
-    course_unparsed: dict = Field(alias='course', exclude=True)
-    divisions_unparsed: list[dict] = Field(alias='divisions', exclude=True)
+    course_unparsed: dict = Field(alias="course", exclude=True)
+    divisions_unparsed: list[dict] = Field(alias="divisions", exclude=True)
     events: list
-    groups_unparsed: list[dict] = Field(alias='groups', exclude=True)
+    groups_unparsed: list[dict] = Field(alias="groups", exclude=True)
     id: int = Field(exclude=True)
-    individual_plan: int = Field(alias='individualPlan', exclude=True)
-    is_canceled: bool = Field(alias='isCanceled', exclude=True)
-    is_moved: bool = Field(alias='isMoved', exclude=True)
-    rooms_unparsed: list[dict] = Field(alias='rooms')
-    student_amount: int = Field(alias='studentAmount', exclude=True)
-    subgroup_unparsed: int | str = Field(alias='subgroup', exclude=True)
-    teachers_unparsed: list[dict] = Field(alias='teachers', exclude=True)
-    time_chunks: list[NonNegativeInt] = Field(alias='timeChunks', exclude=True)
+    individual_plan: int = Field(alias="individualPlan", exclude=True)
+    is_canceled: bool = Field(alias="isCanceled", exclude=True)
+    is_moved: bool = Field(alias="isMoved", exclude=True)
+    rooms_unparsed: list[dict] = Field(alias="rooms")
+    student_amount: int = Field(alias="studentAmount", exclude=True)
+    subgroup_unparsed: int | str = Field(alias="subgroup", exclude=True)
+    teachers_unparsed: list[dict] = Field(alias="teachers", exclude=True)
+    time_chunks: list[NonNegativeInt] = Field(alias="timeChunks", exclude=True)
     type: str
-    version_id: NonNegativeInt = Field(alias='versionId', exclude=True)
-    week_day_number: int = Field(alias='weekDayNumber', exclude=True)
+    version_id: NonNegativeInt = Field(alias="versionId", exclude=True)
+    week_day_number: int = Field(alias="weekDayNumber", exclude=True)
     time: Optional[str] = None
 
     @computed_field
     def groups(self) -> list[str]:
-        return [group['code'] for group in self.groups_unparsed]
+        return [group["code"] for group in self.groups_unparsed]
 
     @computed_field
     def divisions(self) -> list[str]:
-        return [division['name'] for division in self.divisions_unparsed]
+        return [division["name"] for division in self.divisions_unparsed]
 
     @computed_field
     def course(self) -> str:
-        return self.course_unparsed['name']
+        return self.course_unparsed["name"]
 
     @computed_field
     def week_day(self) -> str:
@@ -57,13 +57,22 @@ class Lesson(BaseModel):
 
     @computed_field
     def rooms(self) -> list[str]:
-        rooms = self.changes['rooms'] if 'rooms' in self.changes else self.rooms_unparsed
-        return [room['number'] for room in rooms]
+        rooms = (
+            self.changes["rooms"] if "rooms" in self.changes else self.rooms_unparsed
+        )
+        return [room["number"] for room in rooms]
 
     @computed_field
     def teachers(self) -> list[str]:
-        teachers = self.changes['teachers'] if 'teachers' in self.changes else self.teachers_unparsed
-        res = [' '.join((teacher['lastName'], teacher['firstName'], teacher['patronymic'])) for teacher in teachers]
+        teachers = (
+            self.changes["teachers"]
+            if "teachers" in self.changes
+            else self.teachers_unparsed
+        )
+        res = [
+            " ".join((teacher["lastName"], teacher["firstName"], teacher["patronymic"]))
+            for teacher in teachers
+        ]
         return res
 
     @computed_field
@@ -72,32 +81,36 @@ class Lesson(BaseModel):
 
     def __str__(self):
         text = [
-            '<blockquote expandable>',
+            "<blockquote expandable>",
             self.time,
             self.course,
             self.type,
             self.subgroup,
             *self.rooms,
             *self.teachers,
-            '</blockquote>',
+            "</blockquote>",
         ]
-        return '\n'.join(line for line in text if line.strip())
+        return "\n".join(line for line in text if line.strip())
 
 
 class LessonsData(BaseModel):
     id: int = Field(exclude=True)
     lessons: list[Lesson]
-    lessons_time_chunks: list[str] = Field(alias='lessonsTimeChunks', exclude=True)
+    lessons_time_chunks: list[str] = Field(alias="lessonsTimeChunks", exclude=True)
     name: str = Field(exclude=True)
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def populate_time_strings(self):
         for lesson in self.lessons:
-            time_strs = tuple([
-                self.lessons_time_chunks[i]
-                for i in lesson.time_chunks
-                if 0 <= i < len(self.lessons_time_chunks)
-            ])
-            lesson.time = "".join((time_strs[0].split("-")[0], "-", time_strs[-1].split("-")[-1]))
+            time_strs = tuple(
+                [
+                    self.lessons_time_chunks[i]
+                    for i in lesson.time_chunks
+                    if 0 <= i < len(self.lessons_time_chunks)
+                ]
+            )
+            lesson.time = "".join(
+                (time_strs[0].split("-")[0], "-", time_strs[-1].split("-")[-1])
+            )
 
         return self

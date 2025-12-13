@@ -5,7 +5,9 @@ from typing import Iterable
 from app.models import Lesson
 
 
-def group_and_sort_lessons(lessons: Iterable[Lesson]) -> Iterable[tuple[str, Iterable[Lesson]]]:
+def group_and_sort_lessons(
+    lessons: Iterable[Lesson],
+) -> Iterable[tuple[str, Iterable[Lesson]]]:
     sorted_lessons = sorted(lessons, key=lambda x: (x.week_day_number, time_key(x)))
     grouped_lessons = groupby(sorted_lessons, key=lambda x: x.week_day)
     return grouped_lessons

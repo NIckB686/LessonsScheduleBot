@@ -16,7 +16,7 @@ async def register(session: ClientSession) -> int:
 
 async def get_faculties(session: ClientSession) -> Any:
     async with session.get(
-            "https://lk.gubkin.ru/schedule/api/api.php?act=list&method=getFaculties",
+        "https://lk.gubkin.ru/schedule/api/api.php?act=list&method=getFaculties",
     ) as resp:
         return await resp.json()
 
@@ -31,7 +31,7 @@ async def get_my_faculty(session: ClientSession):
 
 async def get_groups_by_faculty(session: ClientSession, faculty_id: int):
     async with session.get(
-            f"https://lk.gubkin.ru/schedule/api/api.php?act=list&method=getFacultyGroups&facultyId={faculty_id}",
+        f"https://lk.gubkin.ru/schedule/api/api.php?act=list&method=getFacultyGroups&facultyId={faculty_id}",
     ) as resp:
         return await resp.json()
 
@@ -45,9 +45,11 @@ async def get_my_group_id(session: ClientSession) -> int | None:
     return None
 
 
-async def get_schedule_by_date_and_group_id(session: ClientSession, date, group_id: int) -> dict:
+async def get_schedule_by_date_and_group_id(
+    session: ClientSession, date, group_id: int
+) -> dict:
     async with session.get(
-            f"https://lk.gubkin.ru/schedule/api/api.php?act=schedule&date={date}&groupId={group_id}",
+        f"https://lk.gubkin.ru/schedule/api/api.php?act=schedule&date={date}&groupId={group_id}",
     ) as resp:
         return await resp.json()
 
@@ -60,11 +62,11 @@ async def get_schedule(session: ClientSession) -> dict | None:
     for org in organisations:
         if org["name"] == "Ташкент":
             return org
-    logger.debug('Расписание не найдено')
+    logger.debug("Расписание не найдено")
     return None
 
 
 async def get_sched(session: ClientSession) -> list[Lesson]:
     schedule = await get_schedule(session)
-    logger.debug('Расписание получено и передано в парсер')
+    logger.debug("Расписание получено и передано в парсер")
     return LessonsData.model_validate(schedule).lessons
