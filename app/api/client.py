@@ -11,5 +11,9 @@ from app.models import Lesson
 async def get_lessons() -> Iterable[tuple[str, Iterable[Lesson]]]:
     async with ClientSession() as session:
         await register(session)
-        lessons = await network.get_sched(session)
+        lessons = [
+            lesson
+            for lesson in await network.get_sched(session)
+            if not lesson.is_canceled
+        ]
         return group_and_sort_lessons(lessons)
