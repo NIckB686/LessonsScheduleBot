@@ -18,8 +18,6 @@ dev = [
     "ruff>=0.14.8",
 ]
 
-[tool.ruff]
-lint.select = ['ALL']
 
 [tool.ruff.format]
 indent-style = "space"
@@ -39,3 +37,8 @@ no_implicit_reexport = true
 init_forbid_extra = true
 init_typed = true
 warn_required_dynamic_aliases = true
+
+
+[tool.pyright]
+reportMissingImports = false
+pythonVersion = "3.10"
