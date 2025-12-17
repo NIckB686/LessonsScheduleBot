@@ -1,6 +1,5 @@
 import datetime
 import logging
-from typing import Any
 
 from aiohttp import ClientSession
 
@@ -14,19 +13,19 @@ async def register(session: ClientSession) -> int:
         return resp.status
 
 
-async def get_faculties(session: ClientSession) -> Any:
+async def get_faculties(session: ClientSession) -> dict:
     async with session.get(
         "https://lk.gubkin.ru/schedule/api/api.php?act=list&method=getFaculties",
     ) as resp:
         return await resp.json()
 
 
-async def get_my_faculty(session: ClientSession):
+async def get_my_faculty(session: ClientSession) -> int:
     faculties = await get_faculties(session)
     for row in faculties["rows"]:
         if row["code"] == "ТАШКЕНТ":
             return row["id"]
-    return None
+    return 0
 
 
 async def get_groups_by_faculty(session: ClientSession, faculty_id: int):
@@ -36,13 +35,13 @@ async def get_groups_by_faculty(session: ClientSession, faculty_id: int):
         return await resp.json()
 
 
-async def get_my_group_id(session: ClientSession) -> int | None:
+async def get_my_group_id(session: ClientSession) -> int:
     faculty_id = await get_my_faculty(session)
     groups = await get_groups_by_faculty(session, faculty_id)
     for group in groups["rows"]:
         if group["code"] == "УГЦ-24-05":
             return group["id"]
-    return None
+    return 0
 
 
 async def get_schedule_by_date_and_group_id(
