@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 def main() -> None:
     dp = create_dispatcher()
+    # dp.update.outer_middleware(LoggingMiddleware())
     bot = create_bot()
     app = web.Application()
     webhook_request_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
@@ -26,7 +27,6 @@ def create_dispatcher() -> Dispatcher:
     dp.include_router(router)
     dp.startup.register(startup)
     dp.shutdown.register(shutdown)
-    logger.debug("Создан диспетчер")
     return dp
 
 
@@ -34,7 +34,6 @@ def create_bot() -> Bot:
     bot = Bot(
         token=settings.tg_bot_token.get_secret_value(),
     )
-    logger.debug("Бот создан")
     return bot
 
 

@@ -187,7 +187,6 @@ dependencies = [
     { name = "aiogram" },
     { name = "psycopg" },
     { name = "pydantic-settings" },
-    { name = "ruff" },
     { name = "sqlalchemy" },
 ]
 
@@ -199,10 +198,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aiogram", specifier = ">=3.23.0" },
+    { name = "aiogram", specifier = "==3.23.0" },
     { name = "psycopg", specifier = ">=3.3.2" },
     { name = "pydantic-settings", specifier = ">=2.12.0" },
-    { name = "ruff", specifier = "==0.14.10" },
     { name = "sqlalchemy", specifier = "==2.0.45" },
 ]
 

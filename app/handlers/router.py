@@ -16,5 +16,4 @@ router = Router()
 async def get_schedule(message: Message):
     lessons = await get_lessons()
     reformatted_lessons = reformat_lessons(lessons)
-    for text in reformatted_lessons:
-        await message.reply(**text.as_kwargs())
+    await message.reply(**reformatted_lessons.as_kwargs())
