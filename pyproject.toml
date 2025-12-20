@@ -2,7 +2,7 @@
 name = "lessonsschedulebot"
 version = "0.1.0"
 description = "Add your description here"
-requires-python = "==3.13"
+requires-python = "==3.13.0"
 dependencies = [
     "aiogram>=3.23.0",
     "psycopg>=3.3.2",
@@ -13,9 +13,8 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "mypy>=1.19.0",
-    "pyright[nodejs]>=1.1.407",
     "ruff>=0.14.8",
+    "ty>=0.0.4",
 ]
 
 

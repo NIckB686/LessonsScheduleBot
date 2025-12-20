@@ -5,12 +5,8 @@ from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_applicati
 from aiohttp import web
 
 from app.handlers.router import router
+from app.setup_logging import setup_logging
 from settings import settings
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-)
 
 logger = logging.getLogger(__name__)
 
@@ -48,11 +44,12 @@ async def startup(bot: Bot) -> None:
 
 async def shutdown(bot: Bot) -> None:
     await bot.delete_webhook(drop_pending_updates=True)
-    logger.info("Bot shutting down...")
+    logger.info("Вебхук удалён")
 
 
 if __name__ == "__main__":
     try:
+        setup_logging()
         main()
     except KeyboardInterrupt:
-        logger.info("Bot stopped")
+        logger.info("Бот завершает работу")

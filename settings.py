@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     webhook_path: str
 
     @computed_field
+    @property
     def webhook_url(self) -> str:
         """Полный URL вебхука."""
         return f"{self.webhook_base_url}{self.webhook_path}"
