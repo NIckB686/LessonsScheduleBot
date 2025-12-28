@@ -16,4 +16,4 @@ async def get_lessons() -> Iterable[tuple[str, Iterable[Lesson]]]:
             for lesson in await network.get_sched(session)
             if not (lesson.is_canceled or lesson.is_moved)
         ]
-        return group_and_sort_lessons(lessons)
+        return group_and_sort_lessons(lessons) if lessons else []

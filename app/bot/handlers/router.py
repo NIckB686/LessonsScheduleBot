@@ -15,5 +15,8 @@ router = Router()
 @router.message(CommandStart())
 async def get_schedule(message: Message):
     lessons = await get_lessons()
-    reformatted_lessons = reformat_lessons(lessons)
-    await message.reply(**reformatted_lessons.as_kwargs())
+    if lessons:
+        reformatted_lessons = reformat_lessons(lessons)
+        await message.reply(**reformatted_lessons.as_kwargs())
+    else:
+        await message.reply("Уроков на этой неделе нет")
