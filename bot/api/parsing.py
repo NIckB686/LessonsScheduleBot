@@ -2,7 +2,7 @@ import datetime
 from itertools import groupby
 from typing import Iterable
 
-from app.models import Lesson
+from bot.models import Lesson
 
 
 def group_and_sort_lessons(

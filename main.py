@@ -4,8 +4,8 @@ from aiogram import Bot, Dispatcher
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
 
-from app.handlers.router import router
-from app.setup_logging import setup_logging
+from bot.handlers.router import router
+from bot.setup_logging import setup_logging
 from settings import settings
 
 logger = logging.getLogger(__name__)

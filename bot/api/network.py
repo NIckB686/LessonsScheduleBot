@@ -3,7 +3,7 @@ import logging
 
 from aiohttp import ClientSession
 
-from app.models import Lesson, LessonsData
+from bot.models import Lesson, LessonsData
 
 logger = logging.getLogger(__name__)
 

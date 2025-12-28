@@ -2,7 +2,7 @@ from typing import Iterable
 
 from aiogram.utils.formatting import Bold, ExpandableBlockQuote, Text, as_list
 
-from app.models import Lesson
+from bot.models import Lesson
 
 
 def reformat_lesson(lesson: Lesson) -> Text:
