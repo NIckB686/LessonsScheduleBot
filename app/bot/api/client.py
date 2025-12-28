@@ -2,10 +2,10 @@ from typing import Iterable
 
 from aiohttp import ClientSession
 
-from bot.api import network
-from bot.api.network import register
-from bot.api.parsing import group_and_sort_lessons
-from bot.models import Lesson
+from app.bot.api import network
+from app.bot.api.network import register
+from app.bot.api.parsing import group_and_sort_lessons
+from app.bot.models import Lesson
 
 
 async def get_lessons() -> Iterable[tuple[str, Iterable[Lesson]]]:

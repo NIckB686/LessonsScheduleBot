@@ -4,8 +4,8 @@ from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 
-from bot.api import get_lessons
-from bot.reformat_lessons import reformat_lessons
+from app.bot.api import get_lessons
+from app.bot.reformat_lessons import reformat_lessons
 
 logger = logging.getLogger(__name__)
 
