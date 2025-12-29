@@ -21,6 +21,7 @@ dev = [
 
 [tool.ruff.format]
 indent-style = "space"
+quote-style = "double"
 
 [tool.mypy]
 plugins = [
