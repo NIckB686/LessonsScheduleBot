@@ -1,0 +1,71 @@
+services:
+  bot:
+    build: .
+    container_name: bot
+    env_file:
+      - .env
+    environment:
+      TG_BOT_TOKEN: ${TG_BOT_TOKEN}
+      TG_BOT_DROP_PENDING_UPDATES: ${TG_BOT_DROP_PENDING_UPDATES}
+      WEBAPP_HOST: ${WEBAPP_HOST}
+      WEBAPP_PORT: ${WEBAPP_PORT}
+      WEBHOOK_BASE_URL: ${WEBHOOK_BASE_URL}
+      WEBHOOK_PATH: ${WEBHOOK_PATH}
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - ${POSTGRES_PORT}:5432
+    restart:
+      unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+        compress: "true"
+    networks:
+      - app_network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    env_file:
+      - .env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - ./pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_PORT}:80"
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+        compress: "true"
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    name: app_network
