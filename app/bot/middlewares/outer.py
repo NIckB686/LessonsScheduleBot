@@ -3,28 +3,30 @@ from typing import Any, Awaitable, Callable
 
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+logger = logging.getLogger(__name__)
 
 
-class LoggingMiddleware(BaseMiddleware):
-    def __init__(self, logger=__name__):
-        if not isinstance(logger, logging.Logger):
-            logger = logging.getLogger(logger)
-
-        self.logger = logger
-
-        super(LoggingMiddleware, self).__init__()
-
+class DataBaseMiddleware(BaseMiddleware):
     async def __call__(
         self,
         handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
         data: dict[str, Any],
     ) -> Any:
-        self.logger.debug("Got new event: %s", event.__class__.__name__)
-        try:
-            result = await handler(event, data)
-            self.logger.debug("Handled event: %s")
-            return result
-        except Exception as e:
-            self.logger.exception("Error in handler: %s", e)
-            raise
+        async_session_maker: async_sessionmaker[AsyncSession] = data.get(
+            "session_maker"
+        )  # ty:ignore[invalid-assignment]
+        if async_session_maker is None:
+            logger.error("Session maker not provided in middleware data.")
+            raise RuntimeError("Missing session_maker in middleware context.")
+        async with async_session_maker() as session:
+            try:
+                async with session.begin():
+                    data["db_session"] = session
+                    result = await handler(event, data)
+            except Exception as e:
+                logger.exception("Transaction rolled back due to error: %s", e)
+                raise
+        return result

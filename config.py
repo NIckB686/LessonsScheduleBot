@@ -41,10 +41,30 @@ class TelegramConfig(ConfigBase):
     webhook: WebhookConfig = Field(default_factory=WebhookConfig)
 
 
+class PostgresConfig(ConfigBase):
+    model_config = SettingsConfigDict(env_prefix="postgres_")
+
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_HOST: str
+    POSTGRES_PORT: int
+    POSTGRES_NAME: str
+
+    @computed_field
+    @property
+    def get_url(self) -> str:
+        return (
+            f"postgresql+asyncpg://{self.POSTGRES_USER}:"
+            f"{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:"
+            f"{self.POSTGRES_PORT}/{self.POSTGRES_NAME}"
+        )
+
+
 class Config(BaseSettings):
     """Класс, читающий настройки из переменных окружения и .env файла."""
 
     tg: TelegramConfig = Field(default_factory=TelegramConfig)
+    postgres: PostgresConfig = Field(default_factory=PostgresConfig)
 
     @classmethod
     def load(cls) -> "Config":
