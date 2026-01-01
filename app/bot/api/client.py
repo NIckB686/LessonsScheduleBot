@@ -4,13 +4,11 @@ from aiohttp import ClientSession
 
 from app.bot.api import network
 from app.bot.api.models import Lesson
-from app.bot.api.network import register
 from app.bot.api.parsing import group_and_sort_lessons
 
 
 async def get_lessons() -> Iterable[tuple[str, Iterable[Lesson]]]:
     async with ClientSession() as session:
-        await register(session)
         lessons = [
             lesson
             for lesson in await network.get_sched(session)

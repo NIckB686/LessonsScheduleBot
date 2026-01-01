@@ -58,14 +58,14 @@ class Lesson(BaseModel):
     @computed_field
     def rooms(self) -> list[str]:
         rooms = (
-            self.changes["rooms"] if "rooms" in self.changes else self.rooms_unparsed
+            self.changes["rooms"] if "rooms" in self.changes else self.rooms_unparsed  # ty:ignore[invalid-argument-type]
         )
         return [room["number"] for room in rooms]
 
     @computed_field
     def teachers(self) -> list[str]:
         teachers = (
-            self.changes["teachers"]
+            self.changes["teachers"]  # ty:ignore[invalid-argument-type]
             if "teachers" in self.changes
             else self.teachers_unparsed
         )
@@ -78,19 +78,6 @@ class Lesson(BaseModel):
     @computed_field
     def subgroup(self) -> str:
         return subgroup_dict[self.subgroup_unparsed]
-
-    def __str__(self):
-        text = [
-            "<blockquote expandable>",
-            self.time,
-            self.course,
-            self.type,
-            self.subgroup,
-            *self.rooms,
-            *self.teachers,
-            "</blockquote>",
-        ]
-        return "\n".join(line for line in text if line.strip())
 
 
 class LessonsData(BaseModel):
