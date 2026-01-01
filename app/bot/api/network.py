@@ -15,21 +15,21 @@ class ScheduleClient:
     BASE_URL = "https://lk.gubkin.ru/schedule/"
     API_URL = f"{BASE_URL}/api/api.php"
 
-    TARGET_FACULTY_CODE = "ТАШКЕНТ"
-    TARGET_GROUP_CODE = "УГЦ-24-05"
-    TARGET_ORG_NAME = "Ташкент"
-
     def __init__(self, session: ClientSession):
         self.session = session
+        self._registered = False
 
     async def _make_request(self, url: str) -> dict[str, Any]:
         async with self.session.get(url) as resp:
             resp.raise_for_status()
             return await resp.json()
 
-    async def register(self) -> int:
+    async def register(self):
         async with self.session.get(f"{self.BASE_URL}/") as resp:
-            return resp.status
+            if resp.status != 200:
+                raise GubkinAPIError(f"Не удалось зарегистрироваться в Gubkin API. Статус: {resp.status}")
+            self._registered = True
+            logger.debug("Успешная регистрация в Gubkin API")
 
     async def get_faculties(self) -> dict[str, Any]:
         url = f"{self.API_URL}?act=list&method=getFaculties"
@@ -64,30 +64,42 @@ class ScheduleClient:
         url = f"{self.API_URL}?act=schedule&date={date}&groupId={group_id}"
         return await self._make_request(url)
 
-    async def get_organization_schedule(self, org_name: str, date: str | None = None) -> dict[str, Any] | None:
-        group_id = await self.get_group_id(self.TARGET_FACULTY_CODE, self.TARGET_GROUP_CODE)
-        schedule = await self.get_schedule_by_date(group_id, date)
-        organizations = schedule.get("rows", {}).get("organizations", [])
-        for org in organizations:
-            if org.get("name") == org_name:
-                return org
 
-        return None
+    async def get_lessons_for_group(self,
+                                    faculty_code: str,
+                                    group_code: str,
+                                    org_name: str,
+                                    date: str | None = None
+    ) -> list[Lesson]:
+        try:
+            group_id = await self.get_group_id(faculty_code, group_code)
+            schedule = await self.get_schedule_by_date(group_id, date)
 
-    async def get_lessons(self, date: str | None = None) -> list[Lesson]:
-        schedule = await self.get_organization_schedule(self.TARGET_ORG_NAME, date)
+            organizations = schedule.get("rows", {}).get("organizations", [])
+            for org in organizations:
+                if org.get("name") == org_name:
+                    logger.debug("Расписание получено для группы %s, организация %s" % (group_code, org_name))
+                    return LessonsData.model_validate(org).lessons
 
-        if schedule is None:
-            logger.warning("Расписание не найдено, возвращается пустой список")
+            logger.info("Расписание для организации %s не найдено в группе %s" % (org_name, group_code))
             return []
 
-        logger.debug("Расписание получено и передано в парсер")
-        return LessonsData.model_validate(schedule).lessons
+        except GubkinAPIError as e:
+            logger.error("Ошибка при получении расписания: %s", e)
+            raise
 
 
-async def get_sched(session: ClientSession) -> list[Lesson]:
+async def get_sched(
+        session: ClientSession,
+        faculty_code: str = "Ташкент",
+        group_code: str = "УГЦ-24-05",
+        org_name: str = "Ташкент",
+        date: str | None = None
+) -> list[Lesson]:
     client = ScheduleClient(session)
-    if (resp := await client.register()) == 200:
-        return await client.get_lessons()
-    else:
-        raise GubkinAPIError(f"Сервер вернул неверный ответ: {resp}")
+    return await client.get_lessons_for_group(
+        faculty_code=faculty_code,
+        group_code=group_code,
+        org_name=org_name,
+        date=date,
+    )
