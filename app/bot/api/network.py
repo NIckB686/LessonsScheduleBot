@@ -8,8 +8,10 @@ from app.bot.api.models import Lesson, LessonsData
 
 logger = logging.getLogger(__name__)
 
+
 class GubkinAPIError(Exception):
     pass
+
 
 class ScheduleClient:
     BASE_URL = "https://lk.gubkin.ru/schedule/"
@@ -64,13 +66,12 @@ class ScheduleClient:
         url = f"{self.API_URL}?act=schedule&date={date}&groupId={group_id}"
         return await self._make_request(url)
 
-
     async def get_lessons_for_group(self,
                                     faculty_code: str,
                                     group_code: str,
                                     org_name: str,
-                                    date: str | None = None
-    ) -> list[Lesson]:
+                                    date: str | None = None,
+                                    ) -> list[Lesson]:
         try:
             group_id = await self.get_group_id(faculty_code, group_code)
             schedule = await self.get_schedule_by_date(group_id, date)
@@ -91,12 +92,13 @@ class ScheduleClient:
 
 async def get_sched(
         session: ClientSession,
-        faculty_code: str = "Ташкент",
+        faculty_code: str = "ТАШКЕНТ",
         group_code: str = "УГЦ-24-05",
         org_name: str = "Ташкент",
-        date: str | None = None
+        date: str | None = None,
 ) -> list[Lesson]:
     client = ScheduleClient(session)
+    await client.register()
     return await client.get_lessons_for_group(
         faculty_code=faculty_code,
         group_code=group_code,
