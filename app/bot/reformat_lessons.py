@@ -1,4 +1,4 @@
-from typing import Iterable
+from collections.abc import Iterable
 
 from aiogram.utils.formatting import Bold, ExpandableBlockQuote, Text, as_list
 
@@ -28,7 +28,7 @@ def reformat_lessons(
         text = as_list(
             Bold(day),
             ExpandableBlockQuote(
-                as_list(*[reformat_lesson(lesson) for lesson in group], sep="\n\n")
+                as_list(*[reformat_lesson(lesson) for lesson in group], sep="\n\n"),
             ),
         )
         res.append(text)

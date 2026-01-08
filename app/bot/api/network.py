@@ -79,10 +79,10 @@ class ScheduleClient:
             organizations = schedule.get("rows", {}).get("organizations", [])
             for org in organizations:
                 if org.get("name") == org_name:
-                    logger.debug("Расписание получено для группы %s, организация %s" % (group_code, org_name))
+                    logger.debug("Расписание получено для группы %s, организация %s", group_code, org_name)
                     return LessonsData.model_validate(org).lessons
 
-            logger.info("Расписание для организации %s не найдено в группе %s" % (org_name, group_code))
+            logger.info("Расписание для организации %s не найдено в группе %s", org_name, group_code)
             return []
 
         except GubkinAPIError as e:

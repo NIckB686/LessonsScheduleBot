@@ -30,14 +30,12 @@ def create_dispatcher(config: Config) -> Dispatcher:
 
 
 def create_bot(config: Config) -> Bot:
-    bot = Bot(
+    return Bot(
         token=config.tg.bot.token.get_secret_value(),
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
-    return bot
 
 
 def get_storage(config: Config):
     # TODO: нужно будет сделать проверку и возвращать MemoryStorage или RedisStorage в зависимости от значения в конфиге
-    storage = MemoryStorage()
-    return storage
+    return MemoryStorage()

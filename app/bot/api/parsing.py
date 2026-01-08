@@ -1,6 +1,6 @@
 import datetime
+from collections.abc import Iterable
 from itertools import groupby
-from typing import Iterable
 
 from app.bot.api.models import Lesson
 

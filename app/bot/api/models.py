@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, NonNegativeInt, computed_field, model_validator
 
@@ -20,7 +20,7 @@ subgroup_dict = {
 
 
 class Lesson(BaseModel):
-    changes: list | dict = Field(exclude=True)
+    changes: list[str] | dict[str, Any] = Field(exclude=True)
     course_unparsed: dict = Field(alias="course", exclude=True)
     divisions_unparsed: list[dict] = Field(alias="divisions", exclude=True)
     events: list
@@ -37,7 +37,7 @@ class Lesson(BaseModel):
     type: str
     version_id: NonNegativeInt = Field(alias="versionId", exclude=True)
     week_day_number: int = Field(alias="weekDayNumber", exclude=True)
-    time: Optional[str] = None
+    time: str | None = None
 
     @computed_field
     def groups(self) -> list[str]:
@@ -57,18 +57,12 @@ class Lesson(BaseModel):
 
     @computed_field
     def rooms(self) -> list[str]:
-        rooms = (
-            self.changes["rooms"] if "rooms" in self.changes else self.rooms_unparsed  # ty:ignore[invalid-argument-type]
-        )
+        rooms = self.changes.get("rooms", self.rooms_unparsed)
         return [room["number"] for room in rooms]
 
     @computed_field
     def teachers(self) -> list[str]:
-        teachers = (
-            self.changes["teachers"]  # ty:ignore[invalid-argument-type]
-            if "teachers" in self.changes
-            else self.teachers_unparsed
-        )
+        teachers = self.changes.get("teachers", self.teachers_unparsed)
         res = [
             " ".join((teacher["lastName"], teacher["firstName"], teacher["patronymic"]))
             for teacher in teachers
@@ -89,15 +83,13 @@ class LessonsData(BaseModel):
     @model_validator(mode="after")
     def populate_time_strings(self):
         for lesson in self.lessons:
-            time_strs = tuple(
-                [
-                    self.lessons_time_chunks[i]
-                    for i in lesson.time_chunks
-                    if 0 <= i < len(self.lessons_time_chunks)
-                ]
-            )
+            time_strs = [
+                self.lessons_time_chunks[i]
+                for i in lesson.time_chunks
+                if 0 <= i < len(self.lessons_time_chunks)
+            ]
             lesson.time = "".join(
-                (time_strs[0].split("-")[0], "-", time_strs[-1].split("-")[-1])
+                (time_strs[0].split("-")[0], "-", time_strs[-1].split("-")[-1]),
             )
 
         return self

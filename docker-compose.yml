@@ -1,6 +1,8 @@
 services:
   bot:
-    build: .
+    build:
+      context: .
+      target: prod
     container_name: bot
     env_file:
       - .env
@@ -11,6 +13,8 @@ services:
       WEBAPP_PORT: ${WEBAPP_PORT}
       WEBHOOK_BASE_URL: ${WEBHOOK_BASE_URL}
       WEBHOOK_PATH: ${WEBHOOK_PATH}
+    volumes:
+      - .:/app
 
   postgres:
     image: postgres:17-alpine
