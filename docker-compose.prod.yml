@@ -2,18 +2,23 @@ services:
   bot:
     build:
       context: .
-      target: dev
-    container_name: bot-dev
+      target: prod
+    container_name: bot-prod
     env_file:
       - .env
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        compress: "true"
+
     networks:
       - app_network
-    volumes:
-      - .:/app
 
   postgres:
     image: postgres:17-alpine
@@ -22,8 +27,6 @@ services:
       - .env
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    ports:
-      - ${POSTGRES_PORT}:5432
     restart:
       unless-stopped
     healthcheck:
@@ -40,32 +43,9 @@ services:
     networks:
       - app_network
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin-dev
-    env_file:
-      - .env
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-    ports:
-      - "${PGADMIN_PORT}:80"
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "5"
-        compress: "true"
-    networks:
-      - app_network
-
 volumes:
   postgres_data:
-  pgadmin_data:
 
 networks:
   app_network:
-    name: app_network_dev
+    name: app_network_prod
