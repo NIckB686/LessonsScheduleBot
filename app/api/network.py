@@ -4,7 +4,7 @@ from typing import Any
 
 from aiohttp import ClientSession
 
-from app.bot.api.models import Lesson, LessonsData
+from app.api.models import Lesson, LessonsData
 
 logger = logging.getLogger(__name__)
 

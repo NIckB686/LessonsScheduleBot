@@ -2,9 +2,9 @@ from collections.abc import Iterable
 
 from aiohttp import ClientSession
 
-from app.bot.api import network
-from app.bot.api.models import Lesson
-from app.bot.api.parsing import group_and_sort_lessons
+from app.api import network
+from app.api.models import Lesson
+from app.api.parsing import group_and_sort_lessons
 
 
 async def get_lessons() -> Iterable[tuple[str, Iterable[Lesson]]]:

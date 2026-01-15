@@ -5,7 +5,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.bot.api import get_lessons
+from app.api import get_lessons
 from app.bot.reformat_lessons import reformat_lessons
 from app.db.requests.users import add_user, change_user_alive_status, get_user
 
