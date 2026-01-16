@@ -10,6 +10,7 @@ from app.bot.handlers.user import user_router
 from app.bot.middlewares.database import DataBaseMiddleware
 from app.bot.middlewares.shadow_ban import ShadowBanMiddleware
 from app.bot.middlewares.statistics import ActivityCounterMiddleware
+from app.bot.middlewares.user import UserAddMiddleware
 from app.db.connection import get_pg_engine
 from config import Config
 
@@ -33,6 +34,7 @@ async def main(config: Config) -> None:
     logger.info("Including middlewares...")
     dp.update.middleware(DataBaseMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(ShadowBanMiddleware())  # ty:ignore[invalid-argument-type]
+    dp.update.middleware(UserAddMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(ActivityCounterMiddleware())  # ty:ignore[invalid-argument-type]
 
     try:
