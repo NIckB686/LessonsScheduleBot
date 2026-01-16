@@ -16,9 +16,11 @@ user_router = Router()
 async def get_schedule(
     message: Message,
 ):
+    msg = await message.reply("Подождите пожалуйста...")
+
     lessons = await get_lessons()
     if lessons:
         reformatted_lessons = reformat_lessons(lessons)
-        await message.reply(**reformatted_lessons.as_kwargs())
+        await msg.edit_text(**reformatted_lessons.as_kwargs())
     else:
-        await message.reply("Уроков на этой неделе нет")
+        await msg.edit_text("Уроков на этой неделе нет")
