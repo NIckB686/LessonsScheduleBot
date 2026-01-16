@@ -46,7 +46,7 @@ class PostgresConfig(ConfigBase):
 
     USER: str
     PASSWORD: str
-    HOST: str = "localhost"
+    HOST: str
     PORT: int
     DB: str
 

@@ -26,7 +26,7 @@ async def add_user(
     await session.execute(stmt)
 
     logger.info(
-        "User added. Table=`%s`, user_id=%d, created_at='%s', language='%s', role=%s, is_alive=%s, banned=%s",
+        "User added. Table=`%s`, user_id=%d, created_at='%s', language='%s', is_alive=%s, banned=%s",
         "users",
         user_id,
         datetime.now(UTC),

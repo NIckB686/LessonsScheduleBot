@@ -1,32 +1,13 @@
 services:
-  bot:
-    build:
-      context: .
-      target: prod
-    container_name: bot-prod
-    env_file:
-      - .env
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-        compress: "true"
-
-    networks:
-      - app_network
-
   postgres:
     image: postgres:17-alpine
     container_name: postgres-dev
     env_file:
       - .env
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT}:5432"
     restart:
       unless-stopped
     healthcheck:
