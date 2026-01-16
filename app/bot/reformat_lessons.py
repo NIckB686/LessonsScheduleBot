@@ -2,7 +2,7 @@ from collections.abc import Iterable
 
 from aiogram.utils.formatting import Bold, ExpandableBlockQuote, Text, as_list
 
-from app.api import Lesson
+from app.api.models import Lesson
 
 
 def reformat_lesson(lesson: Lesson) -> Text:
@@ -11,13 +11,12 @@ def reformat_lesson(lesson: Lesson) -> Text:
         lesson.course,
         lesson.type,
         lesson.subgroup,
-        *lesson.rooms,
-        *lesson.teachers,
+        *lesson.rooms,  # ty:ignore[not-iterable]
+        *lesson.teachers,  # ty:ignore[not-iterable]
     ]
 
     text = [line for line in text if line.strip()]
-    res = as_list(*text)
-    return res
+    return as_list(*text)
 
 
 def reformat_lessons(

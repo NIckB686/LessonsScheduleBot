@@ -5,7 +5,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api import get_lessons
+from app.api.client import get_s
 from app.bot.reformat_lessons import reformat_lessons
 from app.db.requests.users import add_user, change_user_alive_status, get_user
 
@@ -32,7 +32,7 @@ async def get_schedule(
             is_alive=True,
             user_id=message.from_user.id,  # ty:ignore[possibly-missing-attribute]
         )
-    lessons = await get_lessons()
+    lessons = await get_s()
     if lessons:
         reformatted_lessons = reformat_lessons(lessons)
         await message.reply(**reformatted_lessons.as_kwargs())

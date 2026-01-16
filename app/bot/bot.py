@@ -33,7 +33,7 @@ async def main(config: Config) -> None:
     logger.info("Including middlewares...")
     dp.update.middleware(DataBaseMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(ShadowBanMiddleware())  # ty:ignore[invalid-argument-type]
-    dp.update.middleware(ActivityCounterMiddleware)  # ty:ignore[invalid-argument-type]
+    dp.update.middleware(ActivityCounterMiddleware())  # ty:ignore[invalid-argument-type]
 
     try:
         await dp.start_polling(
@@ -50,9 +50,7 @@ async def main(config: Config) -> None:
 
 
 def create_dispatcher(config: Config) -> Dispatcher:
-    dp = Dispatcher(storage=get_storage(config))
-    dp.include_router(user_router)
-    return dp
+    return Dispatcher(storage=get_storage(config))
 
 
 def create_bot(config: Config) -> Bot:

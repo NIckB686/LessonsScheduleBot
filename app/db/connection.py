@@ -14,7 +14,7 @@ def get_pg_url(
     user: str,
     password: str,
 ) -> str:
-    conn_info = f"postgresql+psycopg://{quote_plus(user)}:{quote_plus(password)}@{host}:{port}/{db_name}"
+    conn_info = f"postgresql+asyncpg://{quote_plus(user)}:{quote_plus(password)}@{host}:{port}/{db_name}"
     logger.debug(
         "Building PostgreSQL connection string (password omitted): postgresql://%s@%s:%s/%s",
         quote_plus(user),
@@ -45,7 +45,7 @@ async def get_pg_engine(
     max_overflow: int = 10,
     pool_timeout: float = 10.0,
     *,
-    echo: bool = True,
+    echo: bool = False,
 ) -> AsyncEngine:
     db_url = get_pg_url(db_name=db_name, host=host, port=port, user=user, password=password)
 

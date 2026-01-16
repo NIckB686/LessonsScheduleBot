@@ -4,13 +4,10 @@ from typing import Any
 
 from aiohttp import ClientSession
 
-from app.api.models import Lesson, LessonsData
+from app.api.errors import GubkinAPIError
+from app.api.models import Lesson, OrganizationData
 
 logger = logging.getLogger(__name__)
-
-
-class GubkinAPIError(Exception):
-    pass
 
 
 class ScheduleClient:
@@ -62,16 +59,16 @@ class ScheduleClient:
     async def get_schedule_by_date(self, group_id: int, date: str | None = None) -> dict[str, Any]:
         if date is None:
             date = datetime.date.today().strftime("%d-%m-%Y")
-
         url = f"{self.API_URL}?act=schedule&date={date}&groupId={group_id}"
         return await self._make_request(url)
 
-    async def get_lessons_for_group(self,
-                                    faculty_code: str,
-                                    group_code: str,
-                                    org_name: str,
-                                    date: str | None = None,
-                                    ) -> list[Lesson]:
+    async def get_lessons_for_group(
+        self,
+        faculty_code: str,
+        group_code: str,
+        org_name: str,
+        date: str | None = None,
+    ) -> list[Lesson]:
         try:
             group_id = await self.get_group_id(faculty_code, group_code)
             schedule = await self.get_schedule_by_date(group_id, date)
@@ -80,7 +77,7 @@ class ScheduleClient:
             for org in organizations:
                 if org.get("name") == org_name:
                     logger.debug("Расписание получено для группы %s, организация %s", group_code, org_name)
-                    return LessonsData.model_validate(org).lessons
+                    return OrganizationData.model_validate(org).lessons
 
             logger.info("Расписание для организации %s не найдено в группе %s", org_name, group_code)
             return []
@@ -91,11 +88,11 @@ class ScheduleClient:
 
 
 async def get_sched(
-        session: ClientSession,
-        faculty_code: str = "ТАШКЕНТ",
-        group_code: str = "УГЦ-24-05",
-        org_name: str = "Ташкент",
-        date: str | None = None,
+    session: ClientSession,
+    faculty_code: str = "ТАШКЕНТ",
+    group_code: str = "УГЦ-24-05",
+    org_name: str = "Ташкент",
+    date: str | None = None,
 ) -> list[Lesson]:
     client = ScheduleClient(session)
     await client.register()
