@@ -26,7 +26,7 @@ async def add_user(
     await session.execute(stmt)
 
     logger.info(
-        "User added. Table=`%s`, user_id=%d, created_at='%s', language='%s', is_alive=%s, banned=%s",
+        "User added. Table=`%s`, user_id=%d, created_at='%s', is_alive=%s, banned=%s",
         "users",
         user_id,
         datetime.now(UTC),
@@ -43,8 +43,37 @@ async def get_user(
     stmt = select(User).where(User.user_id == user_id)
     data = await session.execute(stmt)
     row = data.scalar_one_or_none()
-    logger.info("Row is %s", row)
+    if row is not None:
+        logger.info("Found user with 'user_id=%s'", row.user_id)
+    else:
+        logger.warning("No user with `user_id`=%s found in the database", user_id)
     return row
+
+
+async def get_user_group_id(
+    session: AsyncSession,
+    *,
+    user_id: int,
+):
+    stmt = select(User.group_id).where(User.user_id == user_id)
+    data = await session.execute(stmt)
+    row = data.scalar_one_or_none()
+    if row is not None:
+        logger.info("The user with 'user_id=%s' has the group_id is %d", user_id, row)
+    else:
+        logger.warning("No user with `user_id`=%s found in the database", user_id)
+    return row
+
+
+async def update_user_group(
+    session: AsyncSession,
+    *,
+    user_id: int,
+    group_id: int,
+) -> None:
+    stmt = update(User).where(User.user_id == user_id).values(group_id=group_id)
+    await session.execute(stmt)
+    logger.info("Updated 'user_id' to %d for user %d", group_id, user_id)
 
 
 async def change_user_alive_status(

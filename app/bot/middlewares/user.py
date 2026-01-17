@@ -3,7 +3,7 @@ from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any
 
 from aiogram import BaseMiddleware
-from aiogram.types import Update
+from aiogram.types import Update, User
 
 from app.db.requests.users import add_user, change_user_alive_status, get_user
 
@@ -24,18 +24,19 @@ class UserAddMiddleware(BaseMiddleware):
         if conn is None:
             logger.error("No database connection found in middleware data.")
             raise RuntimeError("Missing database connection for activity logging.")
-
-        user = await get_user(conn, user_id=event.message.from_user.id)  # ty:ignore[possibly-missing-attribute]
+        event_user: User = data.get("event_from_user")  # ty:ignore[invalid-assignment]
+        user_id = event_user.id
+        user = await get_user(conn, user_id=user_id)
         if user is None:
             await add_user(
                 conn,
-                user_id=event.message.from_user.id,  # ty:ignore[possibly-missing-attribute]
-                username=event.message.from_user.username,  # ty:ignore[possibly-missing-attribute]
+                user_id=event_user.id,
+                username=event_user.username,
             )
         else:
             await change_user_alive_status(
                 conn,
                 is_alive=True,
-                user_id=event.message.from_user.id,  # ty:ignore[possibly-missing-attribute]
+                user_id=event_user.id,
             )
         return await handler(event, data)

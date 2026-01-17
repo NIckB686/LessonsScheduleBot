@@ -8,7 +8,6 @@ dependencies = [
     "aiohttp>=3.12.15",
     "alembic>=1.18.1",
     "asyncpg>=0.31.0",
-    "psycopg[binary]>=3.3.2",
     "pydantic>=2.12.5",
     "pydantic-settings>=2.12.0",
     "sqlalchemy==2.0.45",
@@ -17,6 +16,13 @@ dependencies = [
 
 
 [tool.ruff]
+exclude = [
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    "alembic",
+]
 indent-width = 4
 line-length = 120
 output-format = "grouped"
@@ -52,6 +58,9 @@ extend-select = [
     "FBT",
     "N",
     "S",
+]
+extend-ignore = [
+    "COM812"
 ]
 fixable = ["ALL"]
 preview = true

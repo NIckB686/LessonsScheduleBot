@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Iterable
 
 from aiohttp import ClientSession
@@ -8,10 +9,11 @@ from app.api.models.group import Group
 from app.api.network import ScheduleClient
 from app.api.parsing import ScheduleParser
 
+logger = logging.getLogger(__name__)
+
 
 async def get_lessons(
-    faculty_code: str = "ТАШКЕНТ",
-    group_code: str = "УГЦ-24-05",
+    group_id: int,
     org_name: str = "Ташкент",
     date: str | None = None,
 ) -> Iterable[tuple[str, Iterable[Lesson]]]:
@@ -19,12 +21,6 @@ async def get_lessons(
         client = ScheduleClient(session)
         parser = ScheduleParser()
         await client.register()
-        faculties = await client.get_faculties()
-        faculties = parser.parse_faculties(faculties)
-        faculty_id = _get_faculty_id(faculties, faculty_code)
-        groups = await client.get_groups_by_faculty_id(faculty_id)
-        groups = parser.parse_groups(groups)
-        group_id = _get_group_id(groups, group_code)
         schedule = await client.get_schedule_by_date(group_id, date)
         return parser.parse_lessons(schedule, org_name)
 
@@ -50,3 +46,17 @@ async def get_faculties() -> list[Faculty]:
         await client.register()
         faculties = await client.get_faculties()
         return parser.parse_faculties(faculties)
+
+
+async def get_groups(
+    faculty_code: str = "ТАШКЕНТ",
+) -> list[Group]:
+    async with ClientSession() as session:
+        client = ScheduleClient(session)
+        parser = ScheduleParser()
+        await client.register()
+        faculties = await client.get_faculties()
+        faculties = parser.parse_faculties(faculties)
+        faculty_id = _get_faculty_id(faculties, faculty_code)
+        groups = await client.get_groups_by_faculty_id(faculty_id)
+        return parser.parse_groups(groups)

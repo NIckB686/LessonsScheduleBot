@@ -19,6 +19,10 @@ class User(Base):
         unique=True,
         nullable=False,
     )
+    group_id: Mapped[int] = mapped_column(
+        Integer,
+        nullable=True,
+    )
     username: Mapped[str | None] = mapped_column(
         String(32),
         nullable=True,

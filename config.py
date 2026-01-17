@@ -4,7 +4,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class ConfigBase(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
     )
 
 
@@ -53,11 +55,7 @@ class PostgresConfig(ConfigBase):
     @computed_field
     @property
     def get_url(self) -> str:
-        return (
-            f"postgresql+asyncpg://{self.USER}:"
-            f"{self.PASSWORD}@{self.HOST}:"
-            f"{self.PORT}/{self.DB}"
-        )
+        return f"postgresql+asyncpg://{self.USER}:{self.PASSWORD}@{self.HOST}:{self.PORT}/{self.DB}"
 
 
 class Config(BaseSettings):
