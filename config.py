@@ -58,11 +58,22 @@ class PostgresConfig(ConfigBase):
         return f"postgresql+asyncpg://{self.USER}:{self.PASSWORD}@{self.HOST}:{self.PORT}/{self.DB}"
 
 
+class RedisConfig(ConfigBase):
+    model_config = SettingsConfigDict(env_prefix="redis_")
+
+    host: str
+    port: int
+    database: int
+    password: SecretStr
+    username: str
+
+
 class Config(BaseSettings):
     """Класс, читающий настройки из переменных окружения и .env файла."""
 
     tg: TelegramConfig = Field(default_factory=TelegramConfig)
     postgres: PostgresConfig = Field(default_factory=PostgresConfig)
+    redis: RedisConfig = Field(default_factory=RedisConfig)
 
     @classmethod
     def load(cls) -> "Config":

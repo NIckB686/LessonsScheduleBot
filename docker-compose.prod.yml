@@ -5,9 +5,9 @@ services:
     env_file:
       - .env
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "127.0.0.1:${POSTGRES_PORT}:5432"
     restart:
       unless-stopped
     healthcheck:
@@ -24,8 +24,33 @@ services:
     networks:
       - app_network
 
+  redis:
+    image: redis:8.4.0-alpine
+    container_name: redis-prod
+    env_file:
+      - .env
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${REDIS_PORT}:6379"
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "PING"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+        compress: "true"
+
 volumes:
-  postgres_data:
+  postgres-data:
+  redis-data:
 
 networks:
   app_network:

@@ -3,7 +3,8 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.storage.redis import RedisStorage
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from app.bot.handlers.user import user_router
@@ -63,5 +64,12 @@ def create_bot(config: Config) -> Bot:
 
 
 def get_storage(config: Config):
-    # TODO: нужно будет сделать проверку и возвращать MemoryStorage или RedisStorage в зависимости от значения в конфиге
-    return MemoryStorage()
+    return RedisStorage(
+        redis=Redis(
+            host=config.redis.host,
+            port=config.redis.port,
+            db=config.redis.database,
+            password=config.redis.password.get_secret_value(),
+            username=config.redis.username,
+        )
+    )

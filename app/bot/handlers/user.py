@@ -33,7 +33,7 @@ async def process_schedule_command(
         return
     msg = await message.reply("Подождите пожалуйста...")
 
-    lessons = await get_lessons()
+    lessons = await get_lessons(user_group)
     if lessons:
         reformatted_lessons = reformat_lessons(lessons)
         await msg.edit_text(**reformatted_lessons.as_kwargs())
