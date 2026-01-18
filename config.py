@@ -4,7 +4,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class ConfigBase(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
     )
 
 
@@ -46,18 +48,24 @@ class PostgresConfig(ConfigBase):
 
     USER: str
     PASSWORD: str
-    HOST: str = "localhost"
+    HOST: str
     PORT: int
     DB: str
 
     @computed_field
     @property
     def get_url(self) -> str:
-        return (
-            f"postgresql+asyncpg://{self.USER}:"
-            f"{self.PASSWORD}@{self.HOST}:"
-            f"{self.PORT}/{self.DB}"
-        )
+        return f"postgresql+asyncpg://{self.USER}:{self.PASSWORD}@{self.HOST}:{self.PORT}/{self.DB}"
+
+
+class RedisConfig(ConfigBase):
+    model_config = SettingsConfigDict(env_prefix="redis_")
+
+    host: str
+    port: int
+    database: int
+    password: SecretStr
+    username: str
 
 
 class Config(BaseSettings):
@@ -65,6 +73,7 @@ class Config(BaseSettings):
 
     tg: TelegramConfig = Field(default_factory=TelegramConfig)
     postgres: PostgresConfig = Field(default_factory=PostgresConfig)
+    redis: RedisConfig = Field(default_factory=RedisConfig)
 
     @classmethod
     def load(cls) -> "Config":

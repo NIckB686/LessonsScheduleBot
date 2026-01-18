@@ -10,4 +10,5 @@ logger = logging.getLogger(__name__)
 
 config = Config.load()
 
-asyncio.run(main(config))
+if __name__ == "__main__":
+    asyncio.run(main(config))

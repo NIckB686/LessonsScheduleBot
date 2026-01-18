@@ -1,28 +1,25 @@
 services:
   bot:
-    build: .
-    container_name: bot
+    build:
+      context: .
+      target: dev
+    container_name: bot-dev
     env_file:
       - .env
-    environment:
-      TG_BOT_TOKEN: ${TG_BOT_TOKEN}
-      TG_BOT_DROP_PENDING_UPDATES: ${TG_BOT_DROP_PENDING_UPDATES}
-      WEBAPP_HOST: ${WEBAPP_HOST}
-      WEBAPP_PORT: ${WEBAPP_PORT}
-      WEBHOOK_BASE_URL: ${WEBHOOK_BASE_URL}
-      WEBHOOK_PATH: ${WEBHOOK_PATH}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app_network
 
   postgres:
     image: postgres:17-alpine
-    container_name: postgres
+    container_name: postgres-dev
     env_file:
       - .env
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     ports:
       - ${POSTGRES_PORT}:5432
     restart:
@@ -43,14 +40,11 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: pgadmin
+    container_name: pgadmin-dev
     env_file:
       - .env
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     volumes:
-      - ./pgadmin-data:/var/lib/pgadmin
+      - pgadmin-data:/var/lib/pgadmin/data
     ports:
       - "${PGADMIN_PORT}:80"
     restart: unless-stopped
@@ -66,6 +60,10 @@ services:
     networks:
       - app_network
 
+volumes:
+  postgres-data:
+  pgadmin-data:
+
 networks:
   app_network:
-    name: app_network
+    name: app_network_dev
