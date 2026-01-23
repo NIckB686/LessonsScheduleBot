@@ -3,6 +3,7 @@ import logging
 from collections.abc import Iterable
 from itertools import groupby
 
+from app.api.errors import GubkinParsingError
 from app.api.models import Lesson
 from app.api.models.faculty import Faculty, FacultyData
 from app.api.models.group import Group, GroupData
@@ -14,12 +15,12 @@ logger = logging.getLogger(__name__)
 def group_and_sort_lessons(
     lessons: Iterable[Lesson],
 ) -> Iterable[tuple[str, Iterable[Lesson]]]:
-    sorted_lessons = sorted(lessons, key=lambda x: (x.week_day_number, time_key(x)))
-    return groupby(sorted_lessons, key=lambda x: x.week_day)
+    sorted_lessons: list[Lesson] = sorted(lessons, key=lambda x: (x.week_day_number, time_key(x)))
+    return groupby(sorted_lessons, key=(lambda x: " ".join((str(x.week_day), str(x.date)))))
 
 
 def time_key(lesson: Lesson) -> datetime.datetime:
-    start = lesson.time.split("-")[0]
+    start = lesson.time.split("-")[0]  # ty:ignore[possibly-missing-attribute]
     return datetime.datetime.strptime(start, "%H:%M")
 
 
@@ -34,7 +35,7 @@ class ScheduleParser:
             if org.name == organization_name:
                 logger.debug("Расписание получено для группы %s, организация %s", org)
                 return group_and_sort_lessons(org.lessons)
-        raise
+        raise GubkinParsingError("Organization '%s' not found", organization_name)
 
     @staticmethod
     def parse_groups(group_data: dict[str, object]) -> list[Group]:

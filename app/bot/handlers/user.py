@@ -1,4 +1,5 @@
 import logging
+from datetime import date
 
 from aiogram import Bot, F, Router
 from aiogram.enums import BotCommandScopeType
@@ -24,12 +25,12 @@ user_router = Router()
 # и предлагает перейти к регистрации, отправив команду /register
 @user_router.message(CommandStart())
 async def process_start_command(
-        message: Message,
-        bot: Bot,
+    message: Message,
+    bot: Bot,
 ):
     await message.answer(
         text="Этот бот показывает расписание филиала РГУ им. И.М.Губкина в г. Ташкенте."
-             "Чтобы зарегистрироваться - отправьте команду /register",
+        "Чтобы зарегистрироваться - отправьте команду /register",
     )
     await bot.set_my_commands(
         commands=get_main_menu_commands(),
@@ -54,7 +55,7 @@ async def process_schedule_command(
         return
     msg = await message.reply("Подождите пожалуйста...")
 
-    lessons = await get_lessons(user_group)
+    lessons = await get_lessons(group_id=user_group, date=date.today().strftime("%d-%m-%Y"))
     if lessons:
         reformatted_lessons = reformat_lessons(lessons)
         await msg.edit_text(**reformatted_lessons.as_kwargs())
