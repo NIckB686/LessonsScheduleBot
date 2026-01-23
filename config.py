@@ -14,7 +14,7 @@ class BotConfig(ConfigBase):
     model_config = SettingsConfigDict(env_prefix="tg_bot_")
 
     token: SecretStr
-    drop_pending_update: bool = True
+    drop_pending_updates: bool = True
 
 
 class WebAppConfig(ConfigBase):

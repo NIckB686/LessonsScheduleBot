@@ -1,15 +1,16 @@
 import logging
 
-from aiogram import F, Router
+from aiogram import Bot, F, Router
+from aiogram.enums import BotCommandScopeType
 from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import default_state
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import BotCommandScopeChat, CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.client import get_lessons
 from app.bot.callback import GroupCallbackFactory
 from app.bot.FSM.states import FSMRegistration
+from app.bot.keyboards.main_menu import get_main_menu_commands
 from app.bot.keyboards.register import get_group_keyboard
 from app.bot.reformat_lessons import reformat_lessons
 from app.db.requests.users import get_user_group_id, update_user_group
@@ -17,6 +18,26 @@ from app.db.requests.users import get_user_group_id, update_user_group
 logger = logging.getLogger(__name__)
 
 user_router = Router()
+
+
+# хендлер срабатывает на команду /start вне состояний
+# и предлагает перейти к регистрации, отправив команду /register
+@user_router.message(CommandStart())
+async def process_start_command(
+        message: Message,
+        bot: Bot,
+):
+    await message.answer(
+        text="Этот бот показывает расписание филиала РГУ им. И.М.Губкина в г. Ташкенте."
+             "Чтобы зарегистрироваться - отправьте команду /register",
+    )
+    await bot.set_my_commands(
+        commands=get_main_menu_commands(),
+        scope=BotCommandScopeChat(
+            type=BotCommandScopeType.CHAT,
+            chat_id=message.from_user.id,  # ty:ignore[possibly-missing-attribute]
+        ),
+    )
 
 
 @user_router.message(Command(commands="schedule"))
@@ -39,16 +60,6 @@ async def process_schedule_command(
         await msg.edit_text(**reformatted_lessons.as_kwargs())
     else:
         await msg.edit_text("Уроков на этой неделе нет")
-
-
-# хендлер срабатывает на команду /start вне состояний
-# и предлагает перейти к регистрации, отправив команду /register
-@user_router.message(CommandStart(), StateFilter(default_state))
-async def process_start_command(message: Message):
-    await message.answer(
-        text="Этот бот показывает расписание филиала РГУ им. И.М.Губкина в г. Ташкенте."
-        "Чтобы зарегистрироваться - отправьте команду /register",
-    )
 
 
 # этот хендлер срабатывает на команду /register и переключает бота в состояние ожидания ввода группы
