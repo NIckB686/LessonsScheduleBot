@@ -41,28 +41,6 @@ async def process_start_command(
     )
 
 
-@user_router.message(Command(commands="schedule"))
-async def process_schedule_command(
-    message: Message,
-    conn: AsyncSession,
-):
-    user_group = await get_user_group_id(conn, user_id=message.from_user.id)  # ty:ignore[possibly-missing-attribute]
-    if not user_group:
-        await message.reply(
-            "Вы сможете увидеть расписание только после регистрации. "
-            "Для прохождения регистрации отправьте команду /register"
-        )
-        return
-    msg = await message.reply("Подождите пожалуйста...")
-
-    lessons = await get_lessons(group_id=user_group, date=date.today().strftime("%d-%m-%Y"))
-    if lessons:
-        reformatted_lessons = reformat_lessons(lessons)
-        await msg.edit_text(**reformatted_lessons.as_kwargs())
-    else:
-        await msg.edit_text("Уроков на этой неделе нет")
-
-
 # этот хендлер срабатывает на команду /register и переключает бота в состояние ожидания ввода группы
 @user_router.message(Command(commands="register"))
 async def process_register(message: Message, state: FSMContext):
@@ -100,3 +78,25 @@ async def proces_group_press(
 async def process_cancel_registration(state: FSMContext, callback: CallbackQuery):
     await callback.message.delete()  # ty:ignore[possibly-missing-attribute]
     await state.clear()
+
+
+@user_router.message(Command(commands="schedule"))
+async def process_schedule_command(
+    message: Message,
+    conn: AsyncSession,
+):
+    user_group = await get_user_group_id(conn, user_id=message.from_user.id)  # ty:ignore[possibly-missing-attribute]
+    if not user_group:
+        await message.reply(
+            "Вы сможете увидеть расписание только после регистрации. "
+            "Для прохождения регистрации отправьте команду /register",
+        )
+        return
+    msg = await message.reply("Подождите пожалуйста...")
+
+    lessons = await get_lessons(group_id=user_group, date=date.today())
+    if lessons:
+        reformatted_lessons = reformat_lessons(lessons)
+        await msg.edit_text(**reformatted_lessons.as_kwargs())
+    else:
+        await msg.edit_text("Уроков на этой неделе нет")

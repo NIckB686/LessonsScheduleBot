@@ -10,9 +10,7 @@ async def get_group_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
     res = [
-        InlineKeyboardButton(
-            text=group.code,
-            callback_data=GroupCallbackFactory(group_id=group.id).pack())
+        InlineKeyboardButton(text=group.code, callback_data=GroupCallbackFactory(group_id=group.id).pack())
         for group in groups
     ]
     builder.row(*res, width=2)
