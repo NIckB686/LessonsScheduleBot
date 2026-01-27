@@ -1,15 +1,17 @@
 import logging
+from datetime import date
 
-from aiogram import F, Router
+from aiogram import Bot, F, Router
+from aiogram.enums import BotCommandScopeType
 from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import default_state
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import BotCommandScopeChat, CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.client import get_lessons
 from app.bot.callback import GroupCallbackFactory
 from app.bot.FSM.states import FSMRegistration
+from app.bot.keyboards.main_menu import get_main_menu_commands
 from app.bot.keyboards.register import get_group_keyboard
 from app.bot.reformat_lessons import reformat_lessons
 from app.db.requests.users import get_user_group_id, update_user_group
@@ -19,35 +21,23 @@ logger = logging.getLogger(__name__)
 user_router = Router()
 
 
-@user_router.message(Command(commands="schedule"))
-async def process_schedule_command(
-    message: Message,
-    conn: AsyncSession,
-):
-    user_group = await get_user_group_id(conn, user_id=message.from_user.id)  # ty:ignore[possibly-missing-attribute]
-    if not user_group:
-        await message.reply(
-            "Вы сможете увидеть расписание только после регистрации. "
-            "Для прохождения регистрации отправьте команду /register"
-        )
-        return
-    msg = await message.reply("Подождите пожалуйста...")
-
-    lessons = await get_lessons(user_group)
-    if lessons:
-        reformatted_lessons = reformat_lessons(lessons)
-        await msg.edit_text(**reformatted_lessons.as_kwargs())
-    else:
-        await msg.edit_text("Уроков на этой неделе нет")
-
-
 # хендлер срабатывает на команду /start вне состояний
 # и предлагает перейти к регистрации, отправив команду /register
-@user_router.message(CommandStart(), StateFilter(default_state))
-async def process_start_command(message: Message):
+@user_router.message(CommandStart())
+async def process_start_command(
+    message: Message,
+    bot: Bot,
+):
     await message.answer(
         text="Этот бот показывает расписание филиала РГУ им. И.М.Губкина в г. Ташкенте."
         "Чтобы зарегистрироваться - отправьте команду /register",
+    )
+    await bot.set_my_commands(
+        commands=get_main_menu_commands(),
+        scope=BotCommandScopeChat(
+            type=BotCommandScopeType.CHAT,
+            chat_id=message.from_user.id,  # ty:ignore[possibly-missing-attribute]
+        ),
     )
 
 
@@ -88,3 +78,25 @@ async def proces_group_press(
 async def process_cancel_registration(state: FSMContext, callback: CallbackQuery):
     await callback.message.delete()  # ty:ignore[possibly-missing-attribute]
     await state.clear()
+
+
+@user_router.message(Command(commands="schedule"))
+async def process_schedule_command(
+    message: Message,
+    conn: AsyncSession,
+):
+    user_group = await get_user_group_id(conn, user_id=message.from_user.id)  # ty:ignore[possibly-missing-attribute]
+    if not user_group:
+        await message.reply(
+            "Вы сможете увидеть расписание только после регистрации. "
+            "Для прохождения регистрации отправьте команду /register",
+        )
+        return
+    msg = await message.reply("Подождите пожалуйста...")
+
+    lessons = await get_lessons(group_id=user_group, date=date.today())
+    if lessons:
+        reformatted_lessons = reformat_lessons(lessons)
+        await msg.edit_text(**reformatted_lessons.as_kwargs())
+    else:
+        await msg.edit_text("Уроков на этой неделе нет")

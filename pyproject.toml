@@ -25,7 +25,7 @@ exclude = [
     "alembic",
 ]
 indent-width = 4
-line-length = 115
+line-length = 120
 output-format = "grouped"
 show-fixes = true
 preview = true

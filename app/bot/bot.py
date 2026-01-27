@@ -41,6 +41,7 @@ async def main(config: Config) -> None:
     try:
         await dp.start_polling(
             bot,
+            drop_pending_updates=config.tg.bot.drop_pending_updates,
             session_maker=session_maker,
         )
     except KeyboardInterrupt:
@@ -53,7 +54,9 @@ async def main(config: Config) -> None:
 
 
 def create_dispatcher(config: Config) -> Dispatcher:
-    return Dispatcher(storage=get_storage(config))
+    return Dispatcher(
+        storage=get_storage(config),
+    )
 
 
 def create_bot(config: Config) -> Bot:

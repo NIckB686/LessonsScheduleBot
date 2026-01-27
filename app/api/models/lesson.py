@@ -37,6 +37,7 @@ class Lesson(BaseModel):
     version_id: NonNegativeInt | None = Field(default=None, alias="versionId", exclude=True)
     week_day_number: int = Field(alias="weekDayNumber", exclude=True)
     time: str | None = None
+    date: str | None = Field(default=None)
 
     @computed_field
     def groups(self) -> list[str]:
@@ -94,9 +95,29 @@ class OrganizationData(BaseModel):
         return self
 
 
+class Day(BaseModel):
+    date: str
+    is_study_day: bool = Field(alias="isStudyDay")
+    week_day_number: int = Field(alias="weekDayNumber")
+
+
+class Week(BaseModel):
+    days: list[Day]
+    number: int
+    type: str
+
+
 class _Rows(BaseModel):
     organizations: list[OrganizationData]
-    week: dict
+    week: dict[str, Week]
+
+    @model_validator(mode="after")
+    def populate_days_of_week(self):
+        for org in self.organizations:
+            if org.lessons:
+                for lesson in org.lessons:
+                    lesson.date = self.week["weekTashkent"].days[lesson.week_day_number].date
+        return self
 
 
 class LessonsData(BaseModel):

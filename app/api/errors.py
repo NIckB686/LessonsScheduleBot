@@ -2,7 +2,7 @@ class GubkinAPIError(Exception):
     pass
 
 
-class ParsingError(GubkinAPIError):
+class GubkinParsingError(GubkinAPIError):
     pass
 
 

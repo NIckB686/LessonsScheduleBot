@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Iterable
+from datetime import date as dt
 
 from aiohttp import ClientSession
 
@@ -15,11 +16,14 @@ logger = logging.getLogger(__name__)
 async def get_lessons(
     group_id: int,
     org_name: str = "Ташкент",
-    date: str | None = None,
+    date: dt | None = None,
 ) -> Iterable[tuple[str, Iterable[Lesson]]]:
     async with ClientSession() as session:
         client = ScheduleClient(session)
         parser = ScheduleParser()
+        if not date:
+            date: dt = dt.today()
+        date: str = date.strftime("%d-%m-%Y")
         await client.register()
         schedule = await client.get_schedule_by_date(group_id, date)
         return parser.parse_lessons(schedule, org_name)

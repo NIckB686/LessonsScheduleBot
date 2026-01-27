@@ -1,4 +1,3 @@
-import datetime
 import logging
 from typing import Any
 
@@ -38,7 +37,5 @@ class ScheduleClient:
         return await self._make_request(url)
 
     async def get_schedule_by_date(self, group_id: int, date: str | None = None) -> dict[str, Any]:
-        if date is None:
-            date = datetime.date.today().strftime("%d-%m-%Y")
         url = f"{self.API_URL}?act=schedule&date={date}&groupId={group_id}"
         return await self._make_request(url)
