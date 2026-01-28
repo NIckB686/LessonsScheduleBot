@@ -1,5 +1,7 @@
 import logging
-from datetime import date
+from datetime import date as dt
+from datetime import timedelta
+from typing import Literal
 
 from aiogram import Bot, F, Router
 from aiogram.enums import BotCommandScopeType
@@ -9,8 +11,9 @@ from aiogram.types import BotCommandScopeChat, CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.client import get_lessons
-from app.bot.callback import GroupCallbackFactory
+from app.bot.callback import GroupCallbackFactory, ScheduleCallbackFactory
 from app.bot.FSM.states import FSMRegistration
+from app.bot.keyboards.lessons import get_lessons_keyboard
 from app.bot.keyboards.main_menu import get_main_menu_commands
 from app.bot.keyboards.register import get_group_keyboard
 from app.bot.reformat_lessons import reformat_lessons
@@ -85,18 +88,29 @@ async def process_schedule_command(
     message: Message,
     conn: AsyncSession,
 ):
-    user_group = await get_user_group_id(conn, user_id=message.from_user.id)  # ty:ignore[possibly-missing-attribute]
+    msg = await message.reply("Подождите пожалуйста...")
+    today = dt.today()
+    await return_lessons_list(message.from_user.id, msg, today, conn=conn, pressed="curr")  # ty:ignore[possibly-missing-attribute]
+
+
+@user_router.callback_query(ScheduleCallbackFactory.filter())
+async def process_switching_week_btn(
+    callback: CallbackQuery, callback_data: ScheduleCallbackFactory, conn: AsyncSession
+):
+    target: dt = dt.today() if callback_data.week == "curr" else dt.today() + timedelta(days=7)
+    await return_lessons_list(callback.from_user.id, callback.message, target, conn=conn, pressed=callback_data.week)  # ty:ignore[invalid-argument-type]
+
+
+async def return_lessons_list(
+    user_id: int, msg: Message, date: dt, conn: AsyncSession, pressed: Literal["curr", "next"]
+):
+    user_group = await get_user_group_id(conn, user_id=user_id)
     if not user_group:
-        await message.reply(
+        await msg.edit_text(
             "Вы сможете увидеть расписание только после регистрации. "
             "Для прохождения регистрации отправьте команду /register",
         )
         return
-    msg = await message.reply("Подождите пожалуйста...")
-
-    lessons = await get_lessons(group_id=user_group, date=date.today())
-    if lessons:
-        reformatted_lessons = reformat_lessons(lessons)
-        await msg.edit_text(**reformatted_lessons.as_kwargs())
-    else:
-        await msg.edit_text("Уроков на этой неделе нет")
+    lessons = await get_lessons(group_id=user_group, date=date)
+    reformatted_lessons = reformat_lessons(lessons, date)
+    await msg.edit_text(**reformatted_lessons.as_kwargs(), reply_markup=get_lessons_keyboard(pressed))

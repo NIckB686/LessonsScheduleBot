@@ -1,3 +1,5 @@
+from typing import Literal
+
 from aiogram.filters.callback_data import CallbackData
 
 
@@ -6,5 +8,4 @@ class GroupCallbackFactory(CallbackData, prefix="group"):
 
 
 class ScheduleCallbackFactory(CallbackData, prefix="lessons"):
-    current: str
-    week_offset: int
+    week: Literal["curr", "next"]

@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from datetime import date as dt
 
 from aiogram.utils.formatting import Bold, ExpandableBlockQuote, Text, as_list
 
@@ -21,6 +22,7 @@ def reformat_lesson(lesson: Lesson) -> Text:
 
 def reformat_lessons(
     lessons: Iterable[tuple[str, Iterable[Lesson]]],
+    date: dt,
 ) -> Text:
     res: list[Text] = []
     for day, group in lessons:
@@ -31,4 +33,6 @@ def reformat_lessons(
             ),
         )
         res.append(text)
+    if not res:
+        return as_list(Text(f"Уроков на этой неделе нет: {date.strftime('%d-%m-%Y')}"))
     return as_list(*res)
