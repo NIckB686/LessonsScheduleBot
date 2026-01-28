@@ -1,7 +1,4 @@
 import logging
-from datetime import date as dt
-from datetime import timedelta
-from typing import Literal
 
 from aiogram import Bot, F, Router
 from aiogram.enums import BotCommandScopeType
@@ -10,14 +7,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import BotCommandScopeChat, CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.client import get_lessons
 from app.bot.callback import GroupCallbackFactory, ScheduleCallbackFactory
 from app.bot.FSM.states import FSMRegistration
-from app.bot.keyboards.lessons import get_lessons_keyboard
 from app.bot.keyboards.main_menu import get_main_menu_commands
 from app.bot.keyboards.register import get_group_keyboard
-from app.bot.reformat_lessons import reformat_lessons
-from app.db.requests.users import get_user_group_id, update_user_group
+from app.bot.services.show_schedule import show_schedule
+from app.db.requests.users import update_user_group
 
 logger = logging.getLogger(__name__)
 
@@ -64,11 +59,11 @@ async def proces_group_press(
     conn: AsyncSession,
     callback_data: GroupCallbackFactory,
 ):
-    await state.update_data(group_id=callback_data.group_id)
+    group_id = callback_data.group_id
     await update_user_group(
         conn,
         user_id=callback.from_user.id,
-        group_id=(await state.get_data()).get("group_id"),  # ty:ignore[invalid-argument-type]
+        group_id=group_id,
     )
     await state.clear()
     await callback.message.edit_text(  # ty:ignore[possibly-missing-attribute]
@@ -89,28 +84,21 @@ async def process_schedule_command(
     conn: AsyncSession,
 ):
     msg = await message.reply("Подождите пожалуйста...")
-    today = dt.today()
-    await return_lessons_list(message.from_user.id, msg, today, conn=conn, pressed="curr")  # ty:ignore[possibly-missing-attribute]
+    await show_schedule(
+        user_id=message.from_user.id,  # ty:ignore[possibly-missing-attribute]
+        msg=msg,
+        conn=conn,
+        week="curr",
+    )
 
 
 @user_router.callback_query(ScheduleCallbackFactory.filter())
 async def process_switching_week_btn(
     callback: CallbackQuery, callback_data: ScheduleCallbackFactory, conn: AsyncSession
 ):
-    target: dt = dt.today() if callback_data.week == "curr" else dt.today() + timedelta(days=7)
-    await return_lessons_list(callback.from_user.id, callback.message, target, conn=conn, pressed=callback_data.week)  # ty:ignore[invalid-argument-type]
-
-
-async def return_lessons_list(
-    user_id: int, msg: Message, date: dt, conn: AsyncSession, pressed: Literal["curr", "next"]
-):
-    user_group = await get_user_group_id(conn, user_id=user_id)
-    if not user_group:
-        await msg.edit_text(
-            "Вы сможете увидеть расписание только после регистрации. "
-            "Для прохождения регистрации отправьте команду /register",
-        )
-        return
-    lessons = await get_lessons(group_id=user_group, date=date)
-    reformatted_lessons = reformat_lessons(lessons, date)
-    await msg.edit_text(**reformatted_lessons.as_kwargs(), reply_markup=get_lessons_keyboard(pressed))
+    await show_schedule(
+        user_id=callback.from_user.id,
+        msg=callback.message,  # ty:ignore[invalid-argument-type]
+        conn=conn,
+        week=callback_data.week,
+    )
