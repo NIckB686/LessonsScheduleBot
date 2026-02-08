@@ -1,4 +1,5 @@
 import operator
+from typing import TYPE_CHECKING
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, Window
@@ -7,7 +8,9 @@ from aiogram_dialog.widgets.text import Const, Format
 
 import app.api.client
 from app.bot.FSM.states import FSMRegistration
-from app.db.requests.users import update_user_group
+
+if TYPE_CHECKING:
+    from app.db.requests.users import SQLRepo
 
 
 async def get_groups(**kwargs) -> dict[str, tuple]:
@@ -16,8 +19,8 @@ async def get_groups(**kwargs) -> dict[str, tuple]:
 
 
 async def on_group_selected(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
-    await update_user_group(
-        dialog_manager.middleware_data["conn"],
+    repo: SQLRepo = dialog_manager.middleware_data.get("repo")  # ty:ignore[invalid-assignment]
+    await repo.update_user_group(
         user_id=callback.from_user.id,
         group_id=int(item_id),
     )

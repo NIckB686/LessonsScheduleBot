@@ -11,7 +11,8 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from app.bot.handlers.registration import registration
 from app.bot.handlers.user import user_router
-from app.bot.middlewares.database import DataBaseMiddleware
+from app.bot.middlewares.db_conn import DataBaseMiddleware
+from app.bot.middlewares.repo import RepoMiddleware
 from app.bot.middlewares.shadow_ban import ShadowBanMiddleware
 from app.bot.middlewares.statistics import ActivityCounterMiddleware
 from app.bot.middlewares.user import UserAddMiddleware
@@ -42,6 +43,7 @@ async def main(config: Config) -> None:
     dp.update.middleware(ShadowBanMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(UserAddMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(ActivityCounterMiddleware())  # ty:ignore[invalid-argument-type]
+    dp.update.middleware(RepoMiddleware())  # ty:ignore[invalid-argument-type]
 
     try:
         await dp.start_polling(

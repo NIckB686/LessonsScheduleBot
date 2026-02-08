@@ -5,13 +5,12 @@ from aiogram.enums import BotCommandScopeType
 from aiogram.filters import KICKED, ChatMemberUpdatedFilter, Command, CommandStart
 from aiogram.types import BotCommandScopeChat, CallbackQuery, ChatMemberUpdated, Message
 from aiogram_dialog import DialogManager, StartMode
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.callback import ScheduleCallbackFactory
 from app.bot.FSM.states import FSMRegistration
 from app.bot.keyboards.main_menu import get_main_menu_commands
 from app.bot.services.show_schedule import show_schedule
-from app.db.requests.users import change_user_alive_status
+from app.db.requests.users import SQLRepo
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +18,9 @@ user_router = Router()
 
 
 @user_router.my_chat_member(ChatMemberUpdatedFilter(member_status_changed=KICKED))
-async def process_user_blocked_bot(event: ChatMemberUpdated, conn: AsyncSession):
+async def process_user_blocked_bot(event: ChatMemberUpdated, repo: SQLRepo):
     logger.info("Пользователь %s заблокировал бота. username: %s", event.from_user.id, event.from_user.username)
-    await change_user_alive_status(conn, user_id=event.from_user.id, is_alive=False)
+    await repo.change_user_alive_status(user_id=event.from_user.id, is_alive=False)
 
 
 # хендлер срабатывает на команду /start вне состояний
@@ -57,25 +56,23 @@ async def process_register(message: Message, dialog_manager: DialogManager):
 @user_router.message(Command(commands="schedule"))
 async def process_schedule_command(
     message: Message,
-    conn: AsyncSession,
+        repo: SQLRepo,
 ):
     msg = await message.reply("""📡 Загружаю расписание занятий…
 Это может занять несколько секунд.""")
     await show_schedule(
         user_id=message.from_user.id,  # ty:ignore[possibly-missing-attribute]
         msg=msg,
-        conn=conn,
+        repo=repo,
         week="curr",
     )
 
 
 @user_router.callback_query(ScheduleCallbackFactory.filter())
-async def process_switching_week_btn(
-    callback: CallbackQuery, callback_data: ScheduleCallbackFactory, conn: AsyncSession
-):
+async def process_switching_week_btn(callback: CallbackQuery, callback_data: ScheduleCallbackFactory, repo: SQLRepo):
     await show_schedule(
         user_id=callback.from_user.id,
         msg=callback.message,  # ty:ignore[invalid-argument-type]
-        conn=conn,
+        repo=repo,
         week=callback_data.week,
     )
