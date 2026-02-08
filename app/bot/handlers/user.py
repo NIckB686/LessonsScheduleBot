@@ -2,9 +2,8 @@ import logging
 
 from aiogram import Bot, Router
 from aiogram.enums import BotCommandScopeType
-from aiogram.filters import Command, CommandStart
-from aiogram.fsm.context import FSMContext
-from aiogram.types import BotCommandScopeChat, CallbackQuery, Message
+from aiogram.filters import KICKED, ChatMemberUpdatedFilter, Command, CommandStart
+from aiogram.types import BotCommandScopeChat, CallbackQuery, ChatMemberUpdated, Message
 from aiogram_dialog import DialogManager, StartMode
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,10 +11,17 @@ from app.bot.callback import ScheduleCallbackFactory
 from app.bot.FSM.states import FSMRegistration
 from app.bot.keyboards.main_menu import get_main_menu_commands
 from app.bot.services.show_schedule import show_schedule
+from app.db.requests.users import change_user_alive_status
 
 logger = logging.getLogger(__name__)
 
 user_router = Router()
+
+
+@user_router.my_chat_member(ChatMemberUpdatedFilter(member_status_changed=KICKED))
+async def process_user_blocked_bot(event: ChatMemberUpdated, conn: AsyncSession):
+    logger.info("Пользователь %s заблокировал бота. username: %s", event.from_user.id, event.from_user.username)
+    await change_user_alive_status(conn, user_id=event.from_user.id, is_alive=False)
 
 
 # хендлер срабатывает на команду /start вне состояний
