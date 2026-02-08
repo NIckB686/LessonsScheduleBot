@@ -1,10 +1,12 @@
 import logging
+from typing import TYPE_CHECKING
 
-from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.activity import Activity
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 

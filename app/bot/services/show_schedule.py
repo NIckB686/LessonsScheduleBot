@@ -1,13 +1,15 @@
 from datetime import date as dt
 from datetime import timedelta
-from typing import Literal
-
-from aiogram.types import Message
+from typing import TYPE_CHECKING, Literal
 
 from app.api import get_lessons
 from app.bot.keyboards.lessons import get_lessons_keyboard
 from app.bot.services.reformat_lessons import reformat_lessons
-from app.db.requests.users import SQLRepo
+
+if TYPE_CHECKING:
+    from aiogram.types import Message
+
+    from app.db.requests.users import SQLRepo
 
 
 def resolve_target_date(week: Literal["curr", "next"]) -> dt:

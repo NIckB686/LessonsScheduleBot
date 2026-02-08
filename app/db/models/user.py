@@ -1,9 +1,12 @@
-from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import TIMESTAMP, BigInteger, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.models.base import Base
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 class User(Base):

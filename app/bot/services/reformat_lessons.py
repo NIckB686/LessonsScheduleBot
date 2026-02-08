@@ -1,9 +1,12 @@
-from collections.abc import Iterable
-from datetime import date as dt
+from typing import TYPE_CHECKING
 
 from aiogram.utils.formatting import Bold, ExpandableBlockQuote, Text, as_list
 
-from app.api.models import Lesson
+if TYPE_CHECKING:
+    import collections.abc
+    from datetime import date as dt
+
+    from app.api.models import Lesson
 
 
 def reformat_lesson(lesson: Lesson) -> Text:
@@ -21,7 +24,7 @@ def reformat_lesson(lesson: Lesson) -> Text:
 
 
 def reformat_lessons(
-    lessons: Iterable[tuple[str, Iterable[Lesson]]],
+    lessons: collections.abc.Iterable[tuple[str, collections.abc.Iterable[Lesson]]],
     date: dt,
 ) -> Text:
     res: list[Text] = []

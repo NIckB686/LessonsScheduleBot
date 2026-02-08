@@ -1,4 +1,5 @@
 import logging
+from typing import TYPE_CHECKING
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -17,7 +18,9 @@ from app.bot.middlewares.shadow_ban import ShadowBanMiddleware
 from app.bot.middlewares.statistics import ActivityCounterMiddleware
 from app.bot.middlewares.user import UserAddMiddleware
 from app.db.connection import get_pg_engine
-from config import Config
+
+if TYPE_CHECKING:
+    from config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -84,5 +87,5 @@ def get_storage(config: Config):
             password=config.redis.password.get_secret_value(),
             username=config.redis.username,
         ),
-        key_builder=DefaultKeyBuilder(with_destiny=True)
+        key_builder=DefaultKeyBuilder(with_destiny=True),
     )

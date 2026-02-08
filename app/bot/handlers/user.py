@@ -1,4 +1,5 @@
 import logging
+from typing import TYPE_CHECKING
 
 from aiogram import Bot, Router
 from aiogram.enums import BotCommandScopeType
@@ -10,7 +11,9 @@ from app.bot.callback import ScheduleCallbackFactory
 from app.bot.FSM.states import FSMRegistration
 from app.bot.keyboards.main_menu import get_main_menu_commands
 from app.bot.services.show_schedule import show_schedule
-from app.db.requests.users import SQLRepo
+
+if TYPE_CHECKING:
+    from app.db.requests.users import SQLRepo
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +59,7 @@ async def process_register(message: Message, dialog_manager: DialogManager):
 @user_router.message(Command(commands="schedule"))
 async def process_schedule_command(
     message: Message,
-        repo: SQLRepo,
+    repo: SQLRepo,
 ):
     msg = await message.reply("""📡 Загружаю расписание занятий…
 Это может занять несколько секунд.""")

@@ -1,14 +1,18 @@
 import logging
-from collections.abc import Iterable
 from datetime import date as dt
+from typing import TYPE_CHECKING
 
 from aiohttp import ClientSession
 
-from app.api.models import Lesson
-from app.api.models.faculty import Faculty
-from app.api.models.group import Group
 from app.api.network import ScheduleClient
 from app.api.parsing import ScheduleParser
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from app.api.models import Lesson
+    from app.api.models.faculty import Faculty
+    from app.api.models.group import Group
 
 logger = logging.getLogger(__name__)
 

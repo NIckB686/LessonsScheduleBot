@@ -79,12 +79,8 @@ class Lesson(BaseModel):
         else:
             teachers: list[dict[str, str | None | list]] = self.teachers_unparsed
         return [
-            " ".join(
-                p for p in (
-                    teacher.get("lastName"), teacher.get("firstName"), teacher.get("patronymic")
-                )
-                if p
-            )  # ty:ignore[no-matching-overload]
+            " ".join(p for p in (teacher.get("lastName"), teacher.get("firstName"), teacher.get("patronymic")) if p)
+            # ty:ignore[no-matching-overload]
             for teacher in teachers
         ]
 

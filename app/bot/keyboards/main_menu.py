@@ -12,7 +12,7 @@ def get_main_menu_commands() -> list[BotCommand]:
             description="Выбрать группу",
         ),
         BotCommand(
-        command="/schedule",
+            command="/schedule",
             description="Получить расписание",
-        )
+        ),
     ]

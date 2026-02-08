@@ -1,11 +1,13 @@
 import logging
-from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any
 
 from aiogram import BaseMiddleware
-from aiogram.types import Update, User
 
 if TYPE_CHECKING:
+    import collections.abc
+
+    from aiogram.types import Update, User
+
     from app.db.requests.users import SQLRepo
 
 logger = logging.getLogger(__name__)
@@ -14,7 +16,7 @@ logger = logging.getLogger(__name__)
 class UserAddMiddleware(BaseMiddleware):
     async def __call__(
         self,
-        handler: Callable[[Update, dict[str, Any]], Awaitable[Any]],
+        handler: collections.abc.Callable[[Update, dict[str, Any]], collections.abc.Awaitable[Any]],
         event: Update,
         data: dict[str, Any],
     ) -> Any:  # ty:ignore[invalid-method-override]

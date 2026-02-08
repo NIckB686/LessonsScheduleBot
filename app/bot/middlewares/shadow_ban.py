@@ -1,11 +1,13 @@
 import logging
-from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any
 
 from aiogram import BaseMiddleware
-from aiogram.types import TelegramObject, Update, User
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
+    from aiogram.types import TelegramObject, Update, User
+
     from app.db.requests.users import SQLRepo
 
 logger = logging.getLogger(__name__)

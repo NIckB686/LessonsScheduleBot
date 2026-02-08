@@ -1,7 +1,10 @@
 import logging
 import queue
 from logging import handlers
-from logging.handlers import QueueListener
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from logging.handlers import QueueListener
 
 
 def setup_logging() -> QueueListener:

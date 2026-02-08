@@ -1,13 +1,17 @@
 import datetime
 import logging
-from collections.abc import Iterable
 from itertools import groupby
+from typing import TYPE_CHECKING
 
 from app.api.errors import GubkinParsingError
-from app.api.models import Lesson
 from app.api.models.faculty import Faculty, FacultyData
 from app.api.models.group import Group, GroupData
 from app.api.models.lesson import LessonsData
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from app.api.models import Lesson
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,6 @@
 import operator
 from typing import TYPE_CHECKING
 
-from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.kbd import Cancel, Group, Select
 from aiogram_dialog.widgets.text import Const, Format
@@ -10,6 +9,8 @@ import app.api.client
 from app.bot.FSM.states import FSMRegistration
 
 if TYPE_CHECKING:
+    from aiogram.types import CallbackQuery
+
     from app.db.requests.users import SQLRepo
 
 
