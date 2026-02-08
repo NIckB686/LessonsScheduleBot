@@ -54,6 +54,8 @@ async def main(config: Config) -> None:
     except Exception as e:
         logger.exception(e)
     finally:
+        logger.info("Bot is shutting down...")
+        await bot.session.close()
         await engine.dispose()
         logger.info("Connection to Postgres closed")
 

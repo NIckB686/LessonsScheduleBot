@@ -4,7 +4,6 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.kbd import Cancel, Group, Select
 from aiogram_dialog.widgets.text import Const, Format
-from sqlalchemy.ext.asyncio import AsyncSession
 
 import app.api.client
 from app.bot.FSM.states import FSMRegistration
@@ -16,9 +15,9 @@ async def get_groups(**kwargs) -> dict[str, tuple]:
     return {"groups": tuple((group.code, group.id) for group in groups)}
 
 
-async def on_group_selected(callback: CallbackQuery, dialog_manager: DialogManager, item_id: str, conn: AsyncSession):
+async def on_group_selected(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
     await update_user_group(
-        conn,
+        dialog_manager.middleware_data["conn"],
         user_id=callback.from_user.id,
         group_id=int(item_id),
     )
@@ -27,7 +26,7 @@ async def on_group_selected(callback: CallbackQuery, dialog_manager: DialogManag
 
 Ты успешно зарегистрирован и привязан к выбранной группе.
 
-📅 Чтобы получить расписание занятий, отправь команду /schedule"""
+📅 Чтобы получить расписание занятий, отправь команду /schedule""",
     )
     await dialog_manager.done()
 
@@ -45,7 +44,7 @@ fill_group_window = Window(
             id="s_groups",
             item_id_getter=operator.itemgetter(1),
             items="groups",
-            on_click=on_group_selected,  # ty:ignore[invalid-argument-type]
+            on_click=on_group_selected,
         ),
         width=3,
     ),
@@ -53,7 +52,6 @@ fill_group_window = Window(
     state=FSMRegistration.fill_group,
     getter=get_groups,
 )
-
 
 registration = Dialog(
     fill_group_window,
