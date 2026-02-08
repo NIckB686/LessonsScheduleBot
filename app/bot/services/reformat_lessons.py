@@ -16,7 +16,7 @@ def reformat_lesson(lesson: Lesson) -> Text:
         *lesson.teachers,  # ty:ignore[not-iterable]
     ]
 
-    text = [line for line in text if line.strip()]
+    text = [line for line in text if line and line.strip()]
     return as_list(*text)
 
 
