@@ -3,10 +3,13 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
+from aiogram_dialog import setup_dialogs
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from app.bot.handlers.registration import registration
 from app.bot.handlers.user import user_router
 from app.bot.middlewares.database import DataBaseMiddleware
 from app.bot.middlewares.shadow_ban import ShadowBanMiddleware
@@ -30,7 +33,9 @@ async def main(config: Config) -> None:
     )
     session_maker = async_sessionmaker(engine)
     logger.info("Including routers...")
-    dp.include_routers(user_router)
+    dp.include_router(user_router)
+    dp.include_router(registration)
+    setup_dialogs(dp)
 
     logger.info("Including middlewares...")
     dp.update.middleware(DataBaseMiddleware())  # ty:ignore[invalid-argument-type]
@@ -74,5 +79,6 @@ def get_storage(config: Config):
             db=config.redis.database,
             password=config.redis.password.get_secret_value(),
             username=config.redis.username,
-        )
+        ),
+        key_builder=DefaultKeyBuilder(with_destiny=True)
     )
