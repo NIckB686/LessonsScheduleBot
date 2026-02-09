@@ -1,4 +1,4 @@
-from datetime import date, datetime  # noqa
+import datetime as dt  # noqa
 
 from sqlalchemy import TIMESTAMP, BigInteger, Date, ForeignKey, Index, Integer, func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -21,13 +21,13 @@ class Activity(Base):
         nullable=False,
     )
 
-    created_at: Mapped[datetime] = mapped_column(
+    created_at: Mapped[dt.datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         nullable=False,
         server_default=func.now(),
     )
 
-    activity_date: Mapped[date] = mapped_column(
+    activity_date: Mapped[dt.date] = mapped_column(
         Date,
         nullable=False,
         server_default=func.current_date(),
