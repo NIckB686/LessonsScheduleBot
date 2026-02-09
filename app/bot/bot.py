@@ -43,15 +43,14 @@ async def main(config: Config) -> None:
 
     logger.info("Including middlewares...")
     dp.update.middleware(DataBaseMiddleware())  # ty:ignore[invalid-argument-type]
+    dp.update.middleware(RepoMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(ShadowBanMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(UserAddMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(ActivityCounterMiddleware())  # ty:ignore[invalid-argument-type]
-    dp.update.middleware(RepoMiddleware())  # ty:ignore[invalid-argument-type]
 
     try:
         await dp.start_polling(
             bot,
-            drop_pending_updates=config.tg.bot.drop_pending_updates,
             session_maker=session_maker,
         )
     except KeyboardInterrupt:

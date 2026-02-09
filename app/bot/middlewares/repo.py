@@ -20,4 +20,4 @@ class RepoMiddleware(BaseMiddleware):
         conn = data["conn"]
         repo = SQLRepo(conn)
         data["repo"] = repo
-        return handler(event, data)
+        return await handler(event, data)

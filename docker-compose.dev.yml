@@ -2,7 +2,6 @@ services:
   bot:
     build:
       context: .
-      target: dev
     container_name: bot-dev
     env_file:
       - .env
@@ -10,12 +9,44 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+
+  redis:
+    image: redis:8.4.0-alpine
+    container_name: redis-dev
+    env_file:
+      - .env
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    ports:
+      - ${REDIS_PORT}:6379
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "PING"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+        compress: "true"
     networks:
       - app_network
 
   postgres:
     image: postgres:17-alpine
     container_name: postgres-dev
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     env_file:
       - .env
     volumes:
@@ -61,6 +92,7 @@ services:
       - app_network
 
 volumes:
+  redis-data:
   postgres-data:
   pgadmin-data:
 

@@ -25,7 +25,7 @@ class ShadowBanMiddleware(BaseMiddleware):
         if user is None:
             return await handler(event, data)
 
-        repo: SQLRepo = data.get("conn")  # ty:ignore[invalid-assignment]
+        repo: SQLRepo = data.get("repo")  # ty:ignore[invalid-assignment]
         if repo is None:
             logger.error("Database connection not found in middleware data.")
             raise RuntimeError("Missing database connection for shadow ban check.")

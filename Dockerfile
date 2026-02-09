@@ -1,39 +1,33 @@
-FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS build
+FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS builder
 
-ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
-
-RUN groupadd --system --gid 999 nonroot \
-    && useradd --system --gid 999 --uid 999 --create-home nonroot
+ENV UV_LINK_MODE=copy
 
 WORKDIR /app
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked --no-install-project --no-dev
+    uv sync --frozen --no-install-project --no-dev --no-cache
 
-COPY . /app
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
+FROM python:3.14.2-slim-bookworm AS final
 
-FROM build AS dev
-
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen
-
-CMD ["uv", "run", "python", "main.py"]
-
-FROM python:3.13-slim-bookworm AS prod
+WORKDIR /app
 
 RUN groupadd --system --gid 999 nonroot \
     && useradd --system --gid 999 --uid 999 --create-home nonroot
 
-COPY --from=build --chown=nonroot:nonroot /app /app
-
+COPY --from=builder /app/.venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH"
-WORKDIR /app
 
+COPY --chown=nonroot:nonroot main.py .
+COPY --chown=nonroot:nonroot config.py .
+COPY --chown=nonroot:nonroot entrypoint.sh .
+COPY --chown=nonroot:nonroot alembic.ini .
+COPY --chown=nonroot:nonroot alembic ./alembic
+COPY --chown=nonroot:nonroot app ./app
+
+RUN chmod +x entrypoint.sh
 
 USER nonroot
 
-CMD ["python", "main.py"]
+CMD ["./entrypoint.sh"]
