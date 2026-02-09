@@ -1,4 +1,4 @@
-from datetime import datetime  # noqa
+import datetime as dt  # noqa
 
 from sqlalchemy import TIMESTAMP, BigInteger, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -35,7 +35,7 @@ class User(Base):
         default=False,
         nullable=True,
     )
-    created_at: Mapped[datetime] = mapped_column(
+    created_at: Mapped[dt.datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         server_default=func.now(),
         nullable=False,
