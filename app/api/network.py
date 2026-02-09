@@ -1,9 +1,10 @@
 import logging
-from typing import Any
-
-from aiohttp import ClientSession
+from typing import TYPE_CHECKING, Any
 
 from app.api.errors import GubkinRegisterError
+
+if TYPE_CHECKING:
+    from aiohttp import ClientSession
 
 logger = logging.getLogger(__name__)
 

@@ -11,4 +11,7 @@ logger = logging.getLogger(__name__)
 config = Config.load()
 
 if __name__ == "__main__":
-    asyncio.run(main(config))
+    try:
+        asyncio.run(main(config))
+    except KeyboardInterrupt:
+        logger.info("Bot stopped")

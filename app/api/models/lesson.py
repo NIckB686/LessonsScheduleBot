@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import BaseModel, Field, NonNegativeInt, computed_field, model_validator
+from pydantic import BaseModel, Field, NonNegativeInt, computed_field, field_validator, model_validator
 
 days_of_week = {
     0: "Понедельник",
@@ -19,7 +19,7 @@ subgroup_dict = {
 
 
 class Lesson(BaseModel):
-    changes: list[str] | dict[str, Any] = Field(exclude=True)
+    changes: dict[str, Any] | None = Field(default=None, exclude=True)
     course_unparsed: dict = Field(alias="course", exclude=True)
     divisions_unparsed: list[dict] = Field(alias="divisions", exclude=True)
     events: list
@@ -28,16 +28,25 @@ class Lesson(BaseModel):
     individual_plan: int | None = Field(default=None, alias="individualPlan", exclude=True)
     is_canceled: bool = Field(alias="isCanceled", exclude=True)
     is_moved: bool = Field(alias="isMoved", exclude=True)
-    rooms_unparsed: list[dict] = Field(alias="rooms")
+    rooms_unparsed: list[dict[str, str | int]] = Field(alias="rooms")
     student_amount: int | None = Field(default=None, alias="studentAmount", exclude=True)
     subgroup_unparsed: int | str = Field(alias="subgroup", exclude=True)
-    teachers_unparsed: list[dict] = Field(alias="teachers", exclude=True)
+    teachers_unparsed: list[dict[str, list | None | str]] = Field(alias="teachers", exclude=True)
     time_chunks: list[NonNegativeInt] = Field(alias="timeChunks", exclude=True)
     type: str
     version_id: NonNegativeInt | None = Field(default=None, alias="versionId", exclude=True)
     week_day_number: int = Field(alias="weekDayNumber", exclude=True)
     time: str | None = None
     date: str | None = Field(default=None)
+
+    @field_validator("changes", mode="before")
+    @classmethod
+    def normalize_changes(cls, value):
+        if not value:
+            return None
+        if isinstance(value, dict):
+            return value
+        raise TypeError("changes must be dict or empty list")
 
     @computed_field
     def groups(self) -> list[str]:
@@ -56,20 +65,24 @@ class Lesson(BaseModel):
         return days_of_week[self.week_day_number]
 
     @computed_field
-    def rooms(self) -> list[str]:
+    def rooms(self) -> list[str | int | None]:
         if isinstance(self.changes, dict):
             rooms = self.changes.get("rooms", self.rooms_unparsed)
         else:
             rooms = self.rooms_unparsed
-        return [room["number"] for room in rooms]
+        return [room.get("number") for room in rooms]
 
     @computed_field
-    def teachers(self) -> list[str]:
+    def teachers(self) -> list[str] | None:
         if isinstance(self.changes, dict):
-            teachers = self.changes.get("teachers", self.teachers_unparsed)
+            teachers: list[dict[str, str | None | list]] = self.changes.get("teachers", self.teachers_unparsed)
         else:
-            teachers = self.teachers_unparsed
-        return [" ".join((teacher["lastName"], teacher["firstName"], teacher["patronymic"])) for teacher in teachers]
+            teachers: list[dict[str, str | None | list]] = self.teachers_unparsed
+        return [
+            " ".join(p for p in (teacher.get("lastName"), teacher.get("firstName"), teacher.get("patronymic")) if p)
+            # ty:ignore[no-matching-overload]
+            for teacher in teachers
+        ]
 
     @computed_field
     def subgroup(self) -> str:

@@ -1,13 +1,14 @@
 import logging
-from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any
 
 from aiogram import BaseMiddleware
-from aiogram.types import Update, User
 
 from app.db.requests.activity import add_user_activity
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
+    from aiogram.types import Update, User
     from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)

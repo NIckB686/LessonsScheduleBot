@@ -1,19 +1,26 @@
 import logging
+from typing import TYPE_CHECKING
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
+from aiogram_dialog import setup_dialogs
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from app.bot.handlers.registration import registration
 from app.bot.handlers.user import user_router
-from app.bot.middlewares.database import DataBaseMiddleware
+from app.bot.middlewares.db_conn import DataBaseMiddleware
+from app.bot.middlewares.repo import RepoMiddleware
 from app.bot.middlewares.shadow_ban import ShadowBanMiddleware
 from app.bot.middlewares.statistics import ActivityCounterMiddleware
 from app.bot.middlewares.user import UserAddMiddleware
 from app.db.connection import get_pg_engine
-from config import Config
+
+if TYPE_CHECKING:
+    from config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +37,13 @@ async def main(config: Config) -> None:
     )
     session_maker = async_sessionmaker(engine)
     logger.info("Including routers...")
-    dp.include_routers(user_router)
+    dp.include_router(user_router)
+    dp.include_router(registration)
+    setup_dialogs(dp)
 
     logger.info("Including middlewares...")
     dp.update.middleware(DataBaseMiddleware())  # ty:ignore[invalid-argument-type]
+    dp.update.middleware(RepoMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(ShadowBanMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(UserAddMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(ActivityCounterMiddleware())  # ty:ignore[invalid-argument-type]
@@ -41,7 +51,6 @@ async def main(config: Config) -> None:
     try:
         await dp.start_polling(
             bot,
-            drop_pending_updates=config.tg.bot.drop_pending_updates,
             session_maker=session_maker,
         )
     except KeyboardInterrupt:
@@ -49,6 +58,8 @@ async def main(config: Config) -> None:
     except Exception as e:
         logger.exception(e)
     finally:
+        logger.info("Bot is shutting down...")
+        await bot.session.close()
         await engine.dispose()
         logger.info("Connection to Postgres closed")
 
@@ -74,5 +85,6 @@ def get_storage(config: Config):
             db=config.redis.database,
             password=config.redis.password.get_secret_value(),
             username=config.redis.username,
-        )
+        ),
+        key_builder=DefaultKeyBuilder(with_destiny=True),
     )

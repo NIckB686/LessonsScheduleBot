@@ -76,5 +76,5 @@ class Config(BaseSettings):
     redis: RedisConfig = Field(default_factory=RedisConfig)
 
     @classmethod
-    def load(cls) -> "Config":
+    def load(cls) -> Config:
         return cls()
