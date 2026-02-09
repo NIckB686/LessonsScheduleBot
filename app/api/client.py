@@ -16,13 +16,21 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+headers = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"
+    )
+}
+
 
 async def get_lessons(
     group_id: int,
     org_name: str = "Ташкент",
     date: dt | None = None,
 ) -> Iterable[tuple[str, Iterable[Lesson]]]:
-    async with ClientSession() as session:
+    async with ClientSession(headers=headers) as session:
         client = ScheduleClient(session)
         parser = ScheduleParser()
         if not date:
@@ -48,7 +56,7 @@ def _get_group_id(groups: Iterable[Group], group_code) -> int:
 
 
 async def get_faculties() -> list[Faculty]:
-    async with ClientSession() as session:
+    async with ClientSession(headers=headers) as session:
         client = ScheduleClient(session)
         parser = ScheduleParser()
         await client.register()
@@ -59,7 +67,7 @@ async def get_faculties() -> list[Faculty]:
 async def get_groups(
     faculty_code: str = "ТАШКЕНТ",
 ) -> list[Group]:
-    async with ClientSession() as session:
+    async with ClientSession(headers=headers) as session:
         client = ScheduleClient(session)
         parser = ScheduleParser()
         await client.register()
