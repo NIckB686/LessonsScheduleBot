@@ -1,14 +1,9 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from datetime import date, datetime  # noqa
 
 from sqlalchemy import TIMESTAMP, BigInteger, Date, ForeignKey, Index, Integer, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.models.base import Base
-
-if TYPE_CHECKING:
-    from datetime import date, datetime
 
 
 class Activity(Base):
