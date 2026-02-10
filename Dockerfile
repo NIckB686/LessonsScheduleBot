@@ -4,11 +4,6 @@ ENV UV_LINK_MODE=copy
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    python3-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
@@ -22,16 +17,15 @@ RUN groupadd --system --gid 999 nonroot \
     && useradd --system --gid 999 --uid 999 --create-home nonroot
 
 COPY --from=builder /app/.venv /app/.venv
-ENV PATH="/app/.venv/bin:$PATH"
 
-COPY --chown=nonroot:nonroot main.py .
-COPY --chown=nonroot:nonroot config.py .
-COPY --chown=nonroot:nonroot entrypoint.sh .
-COPY --chown=nonroot:nonroot alembic.ini .
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+COPY --chown=nonroot:nonroot --chmod=755 entrypoint.sh .
+COPY --chown=nonroot:nonroot main.py config.py alembic.ini ./
 COPY --chown=nonroot:nonroot alembic ./alembic
 COPY --chown=nonroot:nonroot app ./app
-
-RUN chmod +x entrypoint.sh
 
 USER nonroot
 
