@@ -1,7 +1,6 @@
 services:
   bot:
-    build:
-      context: .
+    image: nickbvcxzd:latest
     container_name: tg-bot
     env_file:
       - .env
