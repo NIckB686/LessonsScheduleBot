@@ -1,6 +1,6 @@
 services:
   bot:
-    image: nickbvcxzd:latest
+    image: nickbvcxzd/gubkinschedulebot:latest
     container_name: tg-bot
     env_file:
       - .env
