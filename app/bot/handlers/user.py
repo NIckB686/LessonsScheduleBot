@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import TYPE_CHECKING
 
@@ -9,6 +10,7 @@ from aiogram_dialog import DialogManager, StartMode
 
 from app.bot.callback import ScheduleCallbackFactory
 from app.bot.FSM.states import FSMRegistration
+from app.bot.handlers.dialogs.registration import load_groups
 from app.bot.keyboards.main_menu import get_main_menu_commands
 from app.bot.services.show_schedule import show_schedule
 
@@ -53,7 +55,8 @@ async def process_start_command(
 
 @user_router.message(Command(commands="register"))
 async def process_register(message: Message, dialog_manager: DialogManager):
-    await dialog_manager.start(FSMRegistration.fill_group, mode=StartMode.RESET_STACK)
+    await dialog_manager.start(FSMRegistration.loading, mode=StartMode.RESET_STACK)
+    asyncio.create_task(load_groups(dialog_manager.bg()))
 
 
 @user_router.message(Command(commands="schedule"))
