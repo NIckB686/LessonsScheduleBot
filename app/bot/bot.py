@@ -10,7 +10,7 @@ from aiogram_dialog import setup_dialogs
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from app.bot.handlers.registration import registration
+from app.bot.handlers.dialogs.registration import registration
 from app.bot.handlers.user import user_router
 from app.bot.middlewares.db_conn import DataBaseMiddleware
 from app.bot.middlewares.repo import RepoMiddleware
@@ -42,7 +42,7 @@ async def main(config: Config) -> None:
     setup_dialogs(dp)
 
     logger.info("Including middlewares...")
-    dp.update.middleware(DataBaseMiddleware())  # ty:ignore[invalid-argument-type]
+    dp.update.middleware(DataBaseMiddleware(session_maker))  # ty:ignore[invalid-argument-type]
     dp.update.middleware(RepoMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(ShadowBanMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(UserAddMiddleware())  # ty:ignore[invalid-argument-type]
@@ -51,7 +51,6 @@ async def main(config: Config) -> None:
     try:
         await dp.start_polling(
             bot,
-            session_maker=session_maker,
         )
     except KeyboardInterrupt:
         logger.info("Бот остановлен")

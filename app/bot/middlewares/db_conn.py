@@ -13,19 +13,16 @@ logger = logging.getLogger(__name__)
 
 
 class DataBaseMiddleware(BaseMiddleware):
+    def __init__(self, session_maker: async_sessionmaker[AsyncSession]):
+        self.db_pool = session_maker
+
     async def __call__(
         self,
         handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: Update,
         data: dict[str, Any],
     ) -> Any:  # ty:ignore[invalid-method-override]
-        db_pool: async_sessionmaker[AsyncSession] = data.get("session_maker")  # ty:ignore[invalid-assignment]
-
-        if db_pool is None:
-            logger.error("Database pool is not provided in middleware data.")
-            raise RuntimeError("Missing db_pool in middleware context.")
-
-        async with db_pool() as connection:
+        async with self.db_pool() as connection:
             try:
                 data["conn"] = connection
                 result = await handler(event, data)
