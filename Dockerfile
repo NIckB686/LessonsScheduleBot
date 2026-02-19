@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim AS builder
 
 ENV UV_LINK_MODE=copy \
     UV_NO_BUILD=1
@@ -10,7 +10,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --frozen --no-install-project --no-dev
 
-FROM python:3.14.2-slim-bookworm AS final
+FROM python:3.14.3-slim-trixie AS final
 
 WORKDIR /app
 
