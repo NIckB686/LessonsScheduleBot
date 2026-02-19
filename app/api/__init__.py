@@ -1,3 +1,3 @@
-from .client import get_lessons
+from .client import ScheduleService
 
-__all__ = ["get_lessons"]
+__all__ = ["ScheduleService"]

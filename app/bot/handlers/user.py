@@ -15,6 +15,7 @@ from app.bot.keyboards.main_menu import get_main_menu_commands
 from app.bot.services.show_schedule import show_schedule
 
 if TYPE_CHECKING:
+    from app.api import ScheduleService
     from app.db.requests.users import SQLRepo
 
 logger = logging.getLogger(__name__)
@@ -54,16 +55,13 @@ async def process_start_command(
 
 
 @user_router.message(Command(commands="register"))
-async def process_register(message: Message, dialog_manager: DialogManager):
+async def process_register(message: Message, dialog_manager: DialogManager, schedule_service: ScheduleService):
     await dialog_manager.start(FSMRegistration.loading, mode=StartMode.RESET_STACK)
-    asyncio.create_task(load_groups(dialog_manager.bg()))
+    asyncio.create_task(load_groups(dialog_manager.bg(), schedule_service))
 
 
 @user_router.message(Command(commands="schedule"))
-async def process_schedule_command(
-    message: Message,
-    repo: SQLRepo,
-):
+async def process_schedule_command(message: Message, repo: SQLRepo, schedule_service: ScheduleService):
     msg = await message.reply("""📡 Загружаю расписание занятий…
 Это может занять несколько секунд.""")
     await show_schedule(
@@ -71,14 +69,18 @@ async def process_schedule_command(
         msg=msg,
         repo=repo,
         week="curr",
+        service=schedule_service,
     )
 
 
 @user_router.callback_query(ScheduleCallbackFactory.filter())
-async def process_switching_week_btn(callback: CallbackQuery, callback_data: ScheduleCallbackFactory, repo: SQLRepo):
+async def process_switching_week_btn(
+    callback: CallbackQuery, callback_data: ScheduleCallbackFactory, repo: SQLRepo, schedule_service: ScheduleService
+):
     await show_schedule(
         user_id=callback.from_user.id,
         msg=callback.message,  # ty:ignore[invalid-argument-type]
         repo=repo,
         week=callback_data.week,
+        service=schedule_service,
     )

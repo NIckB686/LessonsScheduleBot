@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING
 
-import app.api
 from app.bot.FSM.states import FSMRegistration
 
 if TYPE_CHECKING:
@@ -8,11 +7,12 @@ if TYPE_CHECKING:
     from aiogram_dialog import BaseDialogManager, DialogManager
     from aiogram_dialog.widgets.kbd import Select
 
+    from app.api import ScheduleService
     from app.db.requests.users import SQLRepo
 
 
-async def load_groups(dialog_manager: BaseDialogManager):
-    groups = await app.api.client.get_groups()
+async def load_groups(dialog_manager: BaseDialogManager, service: ScheduleService):
+    groups = await service.get_groups()
     await dialog_manager.update({"groups": tuple((group.code, group.id) for group in groups)})
     await dialog_manager.switch_to(FSMRegistration.fill_group)
 

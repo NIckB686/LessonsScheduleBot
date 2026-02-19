@@ -7,9 +7,11 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram_dialog import setup_dialogs
+from aiohttp import ClientSession
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from app.api import ScheduleService
 from app.bot.handlers.dialogs.registration import registration
 from app.bot.handlers.user import user_router
 from app.bot.middlewares.db_conn import DataBaseMiddleware
@@ -23,6 +25,14 @@ if TYPE_CHECKING:
     from config import Config
 
 logger = logging.getLogger(__name__)
+
+headers = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0"
+    )
+}
 
 
 async def main(config: Config) -> None:
@@ -49,9 +59,12 @@ async def main(config: Config) -> None:
     dp.update.middleware(ActivityCounterMiddleware())  # ty:ignore[invalid-argument-type]
 
     try:
-        await dp.start_polling(
-            bot,
-        )
+        async with ClientSession(headers=headers) as session:
+            schedule_service = ScheduleService(session)
+            await dp.start_polling(
+                bot,
+                schedule_service=schedule_service,
+            )
     except KeyboardInterrupt:
         logger.info("Бот остановлен")
     except Exception as e:
