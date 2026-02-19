@@ -99,4 +99,6 @@ def get_storage(config: Config):
             username=config.redis.username,
         ),
         key_builder=DefaultKeyBuilder(with_destiny=True),
+        state_ttl=300,
+        data_ttl=600,
     )

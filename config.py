@@ -54,7 +54,7 @@ class PostgresConfig(ConfigBase):
 
     @computed_field
     @property
-    def get_url(self) -> str:
+    def url(self) -> str:
         return f"postgresql+asyncpg://{self.USER}:{self.PASSWORD}@{self.HOST}:{self.PORT}/{self.DB}"
 
 
