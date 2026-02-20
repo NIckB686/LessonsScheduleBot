@@ -42,7 +42,7 @@ async def process_start_command(
         commands=get_main_menu_commands(locale),
         scope=BotCommandScopeChat(
             type=BotCommandScopeType.CHAT,
-            chat_id=message.from_user.id,  # ty:ignore[possibly-missing-attribute]
+            chat_id=message.from_user.id,  # ty:ignore[unresolved-attribute]
         ),
     )
 
@@ -61,7 +61,7 @@ async def process_schedule_command(
 ):
     msg = await message.reply(locale["/schedule_loading"])
     await show_schedule(
-        user_id=message.from_user.id,  # ty:ignore[possibly-missing-attribute]
+        user_id=message.from_user.id,  # ty:ignore[unresolved-attribute]
         msg=msg,
         repo=repo,
         week="curr",
