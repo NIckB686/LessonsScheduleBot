@@ -5,22 +5,17 @@ from aiogram_dialog.widgets.kbd import Cancel, Group, Select
 from aiogram_dialog.widgets.text import Const, Format
 
 from app.bot.FSM.states import FSMRegistration
-from app.bot.handlers.dialogs.registration.getters import get_groups
+from app.bot.handlers.dialogs.registration.getters import get_groups, loading_getter
 from app.bot.handlers.dialogs.registration.handlers import on_group_selected
 
 loading_window = Window(
-    Const("""⏳ Получаю список учебных групп…
-Пожалуйста, подожди несколько секунд."""),
+    Format("{text}"),
+    getter=loading_getter,
     state=FSMRegistration.loading,
 )
 
 fill_group_window = Window(
-    Const(
-        text="""👥 Выбор учебной группы
-
-Пожалуйста, выбери свою группу из списка ниже 👇
-Если допустил ошибку, группу можно будет изменить позже.""",
-    ),
+    Format("{text}"),
     Group(
         Select(
             Format("{item[0]}"),

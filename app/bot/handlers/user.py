@@ -35,18 +35,11 @@ async def process_user_blocked_bot(event: ChatMemberUpdated, repo: SQLRepo):
 async def process_start_command(
     message: Message,
     bot: Bot,
+    locale: dict[str, str],
 ):
-    await message.answer(
-        text="""📚 Расписание занятий РГУ нефти и газа (НИУ) им. И. М. Губкина — Ташкент
-
-Этот бот помогает студентам филиала в Ташкенте быстро получать актуальное расписание занятий по своей группе.
-
-Чтобы начать работу, пройди регистрацию и выбери свою учебную группу.
-
-➡️ Отправь команду /register""",
-    )
+    await message.answer(locale["/start"])
     await bot.set_my_commands(
-        commands=get_main_menu_commands(),
+        commands=get_main_menu_commands(locale),
         scope=BotCommandScopeChat(
             type=BotCommandScopeType.CHAT,
             chat_id=message.from_user.id,  # ty:ignore[possibly-missing-attribute]
@@ -55,15 +48,18 @@ async def process_start_command(
 
 
 @user_router.message(Command(commands="register"))
-async def process_register(message: Message, dialog_manager: DialogManager, schedule_service: ScheduleService):
-    await dialog_manager.start(FSMRegistration.loading, mode=StartMode.RESET_STACK)
+async def process_register(
+    message: Message, dialog_manager: DialogManager, schedule_service: ScheduleService, locale: dict[str, str]
+):
+    await dialog_manager.start(FSMRegistration.loading, mode=StartMode.RESET_STACK, data={"locale": locale})
     asyncio.create_task(load_groups(dialog_manager.bg(), schedule_service))
 
 
 @user_router.message(Command(commands="schedule"))
-async def process_schedule_command(message: Message, repo: SQLRepo, schedule_service: ScheduleService):
-    msg = await message.reply("""📡 Загружаю расписание занятий…
-Это может занять несколько секунд.""")
+async def process_schedule_command(
+    message: Message, repo: SQLRepo, schedule_service: ScheduleService, locale: dict[str, str]
+):
+    msg = await message.reply(locale["/schedule_loading"])
     await show_schedule(
         user_id=message.from_user.id,  # ty:ignore[possibly-missing-attribute]
         msg=msg,

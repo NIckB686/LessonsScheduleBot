@@ -1,18 +1,18 @@
 from aiogram.types import BotCommand
 
 
-def get_main_menu_commands() -> list[BotCommand]:
+def get_main_menu_commands(locale: dict[str, str]) -> list[BotCommand]:
     return [
         BotCommand(
             command="/start",
-            description="Перезапустить бота",
+            description=locale["/start_description"],
         ),
         BotCommand(
             command="/register",
-            description="Выбрать группу",
+            description=locale["/register_description"],
         ),
         BotCommand(
             command="/schedule",
-            description="Получить расписание",
+            description=locale["/schedule_description"],
         ),
     ]

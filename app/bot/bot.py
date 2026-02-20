@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from app.api import ScheduleService
 from app.bot.handlers.dialogs.registration import registration
 from app.bot.handlers.user import user_router
+from app.bot.locales import RU
 from app.bot.middlewares.db_conn import DataBaseMiddleware
 from app.bot.middlewares.repo import RepoMiddleware
 from app.bot.middlewares.shadow_ban import ShadowBanMiddleware
@@ -47,9 +48,9 @@ async def main(config: Config) -> None:
     )
     session_maker = async_sessionmaker(engine)
     logger.info("Including routers...")
+    setup_dialogs(dp)
     dp.include_router(user_router)
     dp.include_router(registration)
-    setup_dialogs(dp)
 
     logger.info("Including middlewares...")
     dp.update.middleware(DataBaseMiddleware(session_maker))  # ty:ignore[invalid-argument-type]
@@ -57,14 +58,12 @@ async def main(config: Config) -> None:
     dp.update.middleware(ShadowBanMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(UserAddMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(ActivityCounterMiddleware())  # ty:ignore[invalid-argument-type]
+    locale = RU
 
     try:
         async with ClientSession(headers=headers) as session:
             schedule_service = ScheduleService(session)
-            await dp.start_polling(
-                bot,
-                schedule_service=schedule_service,
-            )
+            await dp.start_polling(bot, schedule_service=schedule_service, locale=locale)
     except KeyboardInterrupt:
         logger.info("Бот остановлен")
     except Exception as e:

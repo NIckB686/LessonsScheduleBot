@@ -23,11 +23,5 @@ async def on_group_selected(callback: CallbackQuery, widget: Select, dialog_mana
         user_id=callback.from_user.id,
         group_id=int(item_id),
     )
-    await callback.message.edit_text(  # ty:ignore[possibly-missing-attribute]
-        """✅ Регистрация завершена
-
-Ты успешно зарегистрирован и привязан к выбранной группе.
-
-📅 Чтобы получить расписание занятий, отправь команду /schedule""",
-    )
+    await callback.message.edit_text(dialog_manager.middleware_data["locale"]["/register_successful"])  # ty:ignore[unresolved-attribute]
     await dialog_manager.done()
