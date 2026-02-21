@@ -15,20 +15,22 @@ class BotConfig(ConfigBase):
 
     token: SecretStr
     drop_pending_updates: bool = True
+    use_webhook: bool = False
 
 
 class WebAppConfig(ConfigBase):
     model_config = SettingsConfigDict(env_prefix="webapp_")
 
-    host: str
-    port: int
+    host: str = "0.0.0.0"  # noqa: S104
+    port: int = 8080
 
 
 class WebhookConfig(ConfigBase):
     model_config = SettingsConfigDict(env_prefix="webhook_")
 
-    base_url: str
-    path: str
+    base_url: str = ""
+    path: str = "/webhook"
+    secret: SecretStr
 
     @computed_field
     @property
@@ -69,8 +71,6 @@ class RedisConfig(ConfigBase):
 
 
 class Config(BaseSettings):
-    """Класс, читающий настройки из переменных окружения и .env файла."""
-
     tg: TelegramConfig = Field(default_factory=TelegramConfig)
     postgres: PostgresConfig = Field(default_factory=PostgresConfig)
     redis: RedisConfig = Field(default_factory=RedisConfig)

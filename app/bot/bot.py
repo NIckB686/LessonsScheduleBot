@@ -1,13 +1,14 @@
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiogram_dialog import setup_dialogs
-from aiohttp import ClientSession
+from aiohttp import ClientSession, web
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
@@ -58,21 +59,53 @@ async def main(config: Config) -> None:
     dp.update.middleware(ShadowBanMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(UserAddMiddleware())  # ty:ignore[invalid-argument-type]
     dp.update.middleware(ActivityCounterMiddleware())  # ty:ignore[invalid-argument-type]
-    locale = RU
+
+    extra_data: dict[str, Any] = {"locale": RU}
 
     try:
         async with ClientSession(headers=headers) as session:
-            schedule_service = ScheduleService(session)
-            await dp.start_polling(bot, schedule_service=schedule_service, locale=locale)
+            extra_data["schedule_service"] = ScheduleService(session)
+            if config.tg.bot.use_webhook:
+                ...
+            else:
+                await _run_polling(bot, dp, extra_data)
     except KeyboardInterrupt:
         logger.info("Бот остановлен")
     except Exception as e:
-        logger.exception(e)
+        logger.exception("Непредвиденная ошибка: %s", e)
     finally:
         logger.info("Bot is shutting down...")
         await bot.session.close()
         await engine.dispose()
         logger.info("Connection to Postgres closed")
+
+
+async def _run_polling(bot: Bot, dp: Dispatcher, extra_data: dict[str, Any]):
+    logger.info("Запуск в режиме polling")
+    await dp.start_polling(bot, **extra_data)
+
+
+async def _run_webhook(bot: Bot, dp: Dispatcher, config: Config, extra_data: dict[str, Any]):
+    webhook_cfg = config.tg.webhook
+    webapp_cfg = config.tg.webapp
+
+    logger.info("Устанавливаю вебхук: %s", webhook_cfg.url)
+    await bot.set_webhook(
+        url=webhook_cfg.url,
+        secret_token=webhook_cfg.secret.get_secret_value(),
+        drop_pending_updates=config.tg.bot.drop_pending_updates,
+    )
+    app = web.Application()
+    dp.workflow_data.update(extra_data)
+    SimpleRequestHandler(
+        dispatcher=dp,
+        bot=bot,
+        secret_token=webhook_cfg.secret.get_secret_value() if webhook_cfg.secret else None,
+    ).register(app, path=webhook_cfg.path)
+
+    setup_application(app, dp, bot=bot)
+    logger.info("Запуск webhook-сервера на %s%s%s", webapp_cfg.host, webapp_cfg.port, webhook_cfg.path)
+    await web._run_app(app, host=webapp_cfg.host, port=webapp_cfg.port)
 
 
 def create_dispatcher(config: Config) -> Dispatcher:

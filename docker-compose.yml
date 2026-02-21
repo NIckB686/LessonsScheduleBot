@@ -11,6 +11,8 @@ services:
         max-size: "10m"
         max-file: "3"
         compress: "true"
+    ports:
+      - "127.0.0.1:${WEBAPP_PORT}:${WEBAPP_PORT}"
     depends_on:
       postgres:
         condition: service_healthy
