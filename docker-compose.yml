@@ -1,6 +1,6 @@
 services:
   bot:
-    image: ghcr.io/nickb686/gubkinschedulebot:latest
+    image: ghcr.io/nickb686/nickb686:latest
     container_name: tg-bot
     env_file:
       - .env
