@@ -30,7 +30,7 @@ class WebhookConfig(ConfigBase):
 
     base_url: str = ""
     path: str = "/webhook"
-    secret: SecretStr
+    secret: SecretStr = SecretStr("")
 
     @computed_field
     @property
