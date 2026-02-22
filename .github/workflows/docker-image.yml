@@ -17,7 +17,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Set lowercase owner
       id: vars
-      run: echo "owner_lc=${Owner,,}" >> $GITHUB_OUTPUT
+      run: echo "owner_lc=${OWNER,,}" >> $GITHUB_OUTPUT
       env:
         OWNER: ${{ github.repository_owner }}
     - 
@@ -32,4 +32,4 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         push: true
-        tags: ghcr.io/${{ steps.vars.outputs.owner_lc }}/${ {github.event.repository.name }}:latest
+        tags: ghcr.io/${{ steps.vars.outputs.owner_lc }}/${{ github.event.repository.name }}:latest
