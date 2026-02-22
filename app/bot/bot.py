@@ -66,7 +66,7 @@ async def main(config: Config) -> None:
         async with ClientSession(headers=headers) as session:
             extra_data["schedule_service"] = ScheduleService(session)
             if config.tg.bot.use_webhook:
-                ...
+                await _run_webhook(bot, dp, config, extra_data)
             else:
                 await _run_polling(bot, dp, extra_data)
     except KeyboardInterrupt:
