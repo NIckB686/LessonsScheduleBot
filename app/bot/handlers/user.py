@@ -52,7 +52,7 @@ async def process_register(
     message: Message, dialog_manager: DialogManager, schedule_service: ScheduleService, locale: dict[str, str]
 ):
     await dialog_manager.start(FSMRegistration.loading, mode=StartMode.RESET_STACK, data={"locale": locale})
-    bg_manager = dialog_manager.bg(load=True)
+    bg_manager = dialog_manager.bg(stack_id=dialog_manager.current_stack().id, load=True)
     asyncio.create_task(load_groups(bg_manager, schedule_service))
 
 
