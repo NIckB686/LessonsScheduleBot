@@ -18,6 +18,16 @@ services:
         condition: service_healthy
     networks:
       - app_network
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - .venv/
+        - action: rebuild
+          path: ./pyproject.toml
+
 
   postgres:
     image: postgres:17-alpine
