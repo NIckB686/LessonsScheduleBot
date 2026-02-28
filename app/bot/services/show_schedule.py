@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 def resolve_target_date(week: Literal["curr", "next"]) -> dt:
-    return dt.today() if week == "curr" else dt.today() + timedelta(days=7)
+    return dt.today() if week == "curr" else dt.today() + timedelta(days=7)  # noqa: DTZ011
 
 
 async def show_schedule(

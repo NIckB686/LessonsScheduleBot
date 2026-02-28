@@ -28,7 +28,7 @@ class ScheduleService:
         org_name: str = "Ташкент",
         date: dt | None = None,
     ) -> Iterable[tuple[str, Iterable[Lesson]]]:
-        date: str = (date or dt.today()).strftime("%d-%m-%Y")
+        date: str = (date or dt.today()).strftime("%d-%m-%Y")  # noqa: DTZ011
         await self.client.register()
         schedule = await self.client.get_schedule_by_date(group_id, date)
         return self.parser.parse_lessons(schedule, org_name)

@@ -24,8 +24,8 @@ def group_and_sort_lessons(
 
 
 def time_key(lesson: Lesson) -> datetime.datetime:
-    start = lesson.time.split("-")[0]  # ty:ignore[possibly-missing-attribute]
-    return datetime.datetime.strptime(start, "%H:%M")
+    start = lesson.time.split("-")[0]  # ty:ignore[unresolved-attribute]
+    return datetime.datetime.strptime(start, "%H:%M")  # noqa: DTZ007
 
 
 class ScheduleParser:
@@ -37,7 +37,7 @@ class ScheduleParser:
         data = LessonsData.model_validate(lessons_data)
         for org in data.rows.organizations:
             if org.name == organization_name:
-                logger.debug("Расписание получено для группы %s, организация %s", org)
+                logger.debug("Расписание получено, организация %s", org)
                 return group_and_sort_lessons(org.lessons)
         raise GubkinParsingError("Organization '%s' not found", organization_name)
 

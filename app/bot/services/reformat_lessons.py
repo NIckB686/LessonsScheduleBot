@@ -19,7 +19,7 @@ def reformat_lesson(lesson: Lesson) -> Text:
         *lesson.teachers,  # ty:ignore[not-iterable]
     ]
 
-    text = [line for line in text if line and line.strip()]
+    text = [line for line in text if line and line.strip()]  # ty:ignore[unresolved-attribute]
     return as_list(*text)
 
 
@@ -32,7 +32,7 @@ def reformat_lessons(
         text = as_list(
             Bold(day),
             ExpandableBlockQuote(
-                as_list(*[reformat_lesson(lesson) for lesson in group], sep="\n\n"),
+                as_list(*[reformat_lesson(lesson) for lesson in group if not lesson.is_canceled], sep="\n\n"),
             ),
         )
         res.append(text)
