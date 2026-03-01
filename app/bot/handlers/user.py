@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from typing import TYPE_CHECKING
 
@@ -7,6 +6,7 @@ from aiogram.enums import BotCommandScopeType
 from aiogram.filters import KICKED, ChatMemberUpdatedFilter, Command, CommandStart
 from aiogram.types import BotCommandScopeChat, CallbackQuery, ChatMemberUpdated, Message
 from aiogram_dialog import DialogManager, StartMode
+from aiogram_dialog.manager.bg_manager import BgManager
 
 from app.bot.callback import ScheduleCallbackFactory
 from app.bot.FSM.states import FSMRegistration
@@ -49,11 +49,25 @@ async def process_start_command(
 
 @user_router.message(Command(commands="register"))
 async def process_register(
-    message: Message, dialog_manager: DialogManager, schedule_service: ScheduleService, locale: dict[str, str]
+    message: Message,
+    dialog_manager: DialogManager,
+    schedule_service: ScheduleService,
+    locale: dict[str, str],
 ):
-    await dialog_manager.start(FSMRegistration.loading, mode=StartMode.RESET_STACK, data={"locale": locale})
-    bg_manager = dialog_manager.bg()
-    asyncio.create_task(load_groups(bg_manager, schedule_service))
+    await dialog_manager.start(
+        FSMRegistration.loading,
+        mode=StartMode.RESET_STACK,
+        data={"locale": locale},
+    )
+    bg = BgManager(
+        user=dialog_manager.middleware_data["event_from_user"],
+        chat=dialog_manager.middleware_data["event_chat"],
+        bot=dialog_manager.middleware_data["bot"],
+        router=user_router,
+        intent_id=dialog_manager.current_context().id,
+        stack_id=dialog_manager.current_stack().id,
+    )
+    await load_groups(bg, schedule_service)
 
 
 @user_router.message(Command(commands="schedule"))
