@@ -63,8 +63,16 @@ async def main(config: Config) -> None:
     extra_data: dict[str, Any] = {"locale": RU}
 
     try:
+        redis = Redis(
+            host=config.redis.host,
+            port=config.redis.port,
+            db=config.redis.cache_database,
+            password=config.redis.password.get_secret_value(),
+            username=config.redis.username,
+        )
         async with ClientSession(headers=headers) as session:
-            extra_data["schedule_service"] = ScheduleService(session)
+            schedule_service = ScheduleService(session=session, redis=redis)
+            extra_data["schedule_service"] = schedule_service
             if config.tg.bot.use_webhook:
                 await _run_webhook(bot, dp, config, extra_data)
             else:
@@ -77,6 +85,7 @@ async def main(config: Config) -> None:
         logger.info("Bot is shutting down...")
         await bot.session.close()
         await engine.dispose()
+        await schedule_service.client.session.close()
         logger.info("Connection to Postgres closed")
 
 
@@ -110,7 +119,7 @@ async def _run_webhook(bot: Bot, dp: Dispatcher, config: Config, extra_data: dic
 
 def create_dispatcher(config: Config) -> Dispatcher:
     return Dispatcher(
-        storage=get_storage(config),
+        storage=get_fsm_storage(config),
     )
 
 
@@ -121,12 +130,12 @@ def create_bot(config: Config) -> Bot:
     )
 
 
-def get_storage(config: Config):
+def get_fsm_storage(config: Config):
     return RedisStorage(
         redis=Redis(
             host=config.redis.host,
             port=config.redis.port,
-            db=config.redis.database,
+            db=config.redis.fsm_database,
             password=config.redis.password.get_secret_value(),
             username=config.redis.username,
         ),
