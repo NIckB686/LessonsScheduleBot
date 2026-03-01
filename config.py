@@ -63,10 +63,9 @@ class PostgresConfig(ConfigBase):
 class RedisConfig(ConfigBase):
     model_config = SettingsConfigDict(env_prefix="redis_")
 
-    fsm_database: int
-    cache_database: int
     host: str
     port: int
+    database: int
     password: SecretStr
     username: str
 

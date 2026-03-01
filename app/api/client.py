@@ -9,7 +9,6 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
     from aiohttp import ClientSession
-    from redis.asyncio import Redis
 
     from app.api.models import Lesson
     from app.api.models.faculty import Faculty
@@ -19,8 +18,8 @@ logger = logging.getLogger(__name__)
 
 
 class ScheduleService:
-    def __init__(self, session: ClientSession, redis: Redis):
-        self.client = ScheduleClient(session, redis)
+    def __init__(self, session: ClientSession):
+        self.client = ScheduleClient(session)
         self.parser = ScheduleParser()
 
     async def get_lessons(
@@ -30,10 +29,12 @@ class ScheduleService:
         date: dt | None = None,
     ) -> Iterable[tuple[str, Iterable[Lesson]]]:
         date: str = (date or dt.today()).strftime("%d-%m-%Y")  # noqa: DTZ011
+        await self.client.register()
         schedule = await self.client.get_schedule_by_date(group_id, date)
         return self.parser.parse_lessons(schedule, org_name)
 
     async def get_faculties(self) -> list[Faculty]:
+        await self.client.register()
         faculties = await self.client.get_faculties()
         return self.parser.parse_faculties(faculties)
 
@@ -41,6 +42,8 @@ class ScheduleService:
         self,
         faculty_code: str = "ТАШКЕНТ",
     ) -> list[Group]:
+
+        await self.client.register()
         faculties = await self.client.get_faculties()
         faculties = self.parser.parse_faculties(faculties)
         faculty_id = _get_faculty_id(faculties, faculty_code)

@@ -31,10 +31,10 @@ def time_key(lesson: Lesson) -> datetime.datetime:
 class ScheduleParser:
     @staticmethod
     def parse_lessons(
-        lessons_data: str,
+        lessons_data: dict[str, object],
         organization_name: str,
     ) -> Iterable[tuple[str, Iterable[Lesson]]]:
-        data = LessonsData.model_validate_json(lessons_data)
+        data = LessonsData.model_validate(lessons_data)
         for org in data.rows.organizations:
             if org.name == organization_name:
                 logger.debug("Расписание получено, организация %s", org)
@@ -42,9 +42,9 @@ class ScheduleParser:
         raise GubkinParsingError("Organization '%s' not found", organization_name)
 
     @staticmethod
-    def parse_groups(group_data: str) -> list[Group]:
-        return GroupData.model_validate_json(group_data).rows
+    def parse_groups(group_data: dict[str, object]) -> list[Group]:
+        return GroupData.model_validate(group_data).rows
 
     @staticmethod
-    def parse_faculties(faculty_data: str) -> list[Faculty]:
-        return FacultyData.model_validate_json(faculty_data).rows
+    def parse_faculties(faculty_data: dict[str, object]) -> list[Faculty]:
+        return FacultyData.model_validate(faculty_data).rows
