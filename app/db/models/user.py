@@ -9,20 +9,12 @@ from app.db.models.base import Base
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-    )
-    user_id: Mapped[int] = mapped_column(
-        BigInteger,
-        unique=True,
-        nullable=False,
-    )
-    group_id: Mapped[int] = mapped_column(
+    user_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False, primary_key=True)
+    group_id: Mapped[int | None] = mapped_column(
         Integer,
         nullable=True,
     )
+    group_name: Mapped[str | None] = mapped_column(String(15), nullable=True)
     username: Mapped[str | None] = mapped_column(
         String(32),
         nullable=True,
