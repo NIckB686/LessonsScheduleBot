@@ -7,13 +7,11 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-from aiogram_dialog import setup_dialogs
 from aiohttp import ClientSession, web
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from app.api import ScheduleService
-from app.bot.handlers.dialogs.registration import registration
 from app.bot.handlers.user import user_router
 from app.bot.locales import RU
 from app.bot.middlewares.db_conn import DataBaseMiddleware
@@ -49,9 +47,7 @@ async def main(config: Config) -> None:
     )
     session_maker = async_sessionmaker(engine)
     logger.info("Including routers...")
-    setup_dialogs(dp)
     dp.include_router(user_router)
-    dp.include_router(registration)
 
     logger.info("Including middlewares...")
     dp.update.middleware(DataBaseMiddleware(session_maker))  # ty:ignore[invalid-argument-type]
