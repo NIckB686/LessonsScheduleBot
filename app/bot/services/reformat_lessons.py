@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from aiogram.utils.formatting import Bold, ExpandableBlockQuote, Text, as_list
+from aiogram.utils.formatting import Bold, ExpandableBlockQuote, Text, Underline, as_list
 
 if TYPE_CHECKING:
     import collections.abc
@@ -25,7 +25,9 @@ def reformat_lesson(lesson: Lesson) -> Text:
 
 def reformat_lessons(
     lessons: collections.abc.Iterable[tuple[str, collections.abc.Iterable[Lesson]]],
-    date: dt,
+    from_date: dt,
+    locale: dict[str, str],
+    group_name: str | None,
 ) -> Text:
     res: list[Text] = []
     for day, group in lessons:
@@ -36,6 +38,11 @@ def reformat_lessons(
             ),
         )
         res.append(text)
+    header = (
+        as_list(locale["/schedule"], " ", Underline(group_name), ":\n", sep="")
+        if group_name
+        else Text(locale["no_header"], "\n")
+    )
     if not res:
-        return as_list(Text(f"Уроков на этой неделе нет: {date.strftime('%d-%m-%Y')}"))
-    return as_list(*res)
+        return as_list(header, Text(locale["no_lessons"].format(date=from_date.strftime("%d-%m-%Y"))))
+    return as_list(header, *res)

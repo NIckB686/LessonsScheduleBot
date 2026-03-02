@@ -68,10 +68,10 @@ async def proces_group_press(
     callback_data: GroupCallbackFactory,
     locale: dict[str, str],
 ):
-    group_id = callback_data.group_id
     await repo.update_user_group(
         user_id=callback.from_user.id,
-        group_id=group_id,
+        group_id=callback_data.group_id,
+        group_name=callback_data.group_name,
     )
     await state.clear()
     await callback.message.edit_text(locale["/register_successful"])  # ty:ignore[unresolved-attribute]
@@ -95,12 +95,17 @@ async def process_schedule_command(
         repo=repo,
         week="curr",
         service=schedule_service,
+        locale=locale,
     )
 
 
 @user_router.callback_query(ScheduleCallbackFactory.filter())
 async def process_switching_week_btn(
-    callback: CallbackQuery, callback_data: ScheduleCallbackFactory, repo: SQLRepo, schedule_service: ScheduleService
+    callback: CallbackQuery,
+    callback_data: ScheduleCallbackFactory,
+    repo: SQLRepo,
+    schedule_service: ScheduleService,
+    locale: dict[str, str],
 ):
     await show_schedule(
         user_id=callback.from_user.id,
@@ -108,4 +113,5 @@ async def process_switching_week_btn(
         repo=repo,
         week=callback_data.week,
         service=schedule_service,
+        locale=locale,
     )

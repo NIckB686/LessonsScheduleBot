@@ -14,7 +14,9 @@ async def get_group_keyboard(schedule_service: ScheduleService) -> InlineKeyboar
     builder = InlineKeyboardBuilder()
 
     res = [
-        InlineKeyboardButton(text=group.code, callback_data=GroupCallbackFactory(group_id=group.id).pack())
+        InlineKeyboardButton(
+            text=group.code, callback_data=GroupCallbackFactory(group_id=group.id, group_name=group.code).pack()
+        )
         for group in groups
     ]
     builder.row(*res, width=3)

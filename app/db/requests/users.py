@@ -64,9 +64,19 @@ class SQLRepo:
         data = await self.conn.execute(stmt)
         row = data.scalar_one_or_none()
         if row is not None:
-            logger.info("The user with 'user_id=%s' has the group_id is %d", user_id, row)
+            logger.info("The user with 'user_id=%s' has the 'group_id' is %d", user_id, row)
         else:
-            logger.warning("No user with `user_id`=%s found in the database", user_id)
+            logger.warning("No 'group_id' of user with `user_id`=%s found in the database", user_id)
+        return row
+
+    async def get_user_group_name(self, *, user_id: int):
+        stmt = select(User.group_name).where(User.user_id == user_id)
+        data = await self.conn.execute(stmt)
+        row = data.scalar_one_or_none()
+        if row is not None:
+            logger.info("The user with 'user_id=%s' has the 'group_name' is %s", user_id, row)
+        else:
+            logger.warning("No 'group_name' of user with `user_id`=%s found in the database", user_id)
         return row
 
     async def update_user_group(
@@ -74,8 +84,9 @@ class SQLRepo:
         *,
         user_id: int,
         group_id: int,
+        group_name: str,
     ) -> None:
-        stmt = update(User).where(User.user_id == user_id).values(group_id=group_id)
+        stmt = update(User).where(User.user_id == user_id).values(group_id=group_id, group_name=group_name)
         await self.conn.execute(stmt)
         logger.info("Updated 'user_id' to %d for user %d", group_id, user_id)
 

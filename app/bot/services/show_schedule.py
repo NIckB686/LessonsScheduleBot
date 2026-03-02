@@ -17,16 +17,20 @@ def resolve_target_date(week: Literal["curr", "next"]) -> dt:
 
 
 async def show_schedule(
-    *, user_id: int, msg: Message, repo: SQLRepo, week: Literal["curr", "next"], service: ScheduleService
+    *,
+    user_id: int,
+    msg: Message,
+    repo: SQLRepo,
+    week: Literal["curr", "next"],
+    service: ScheduleService,
+    locale: dict[str, str],
 ):
-    user_group = await repo.get_user_group_id(user_id=user_id)
-    if not user_group:
-        await msg.edit_text(
-            "Вы сможете увидеть расписание только после регистрации. "
-            "Для прохождения регистрации отправьте команду /register",
-        )
+    user_group_id = await repo.get_user_group_id(user_id=user_id)
+    if not user_group_id:
+        await msg.edit_text(locale["user_not_registered"])
         return
     date = resolve_target_date(week)
-    lessons = await service.get_lessons(group_id=user_group, date=date)
-    reformatted_lessons = reformat_lessons(lessons, date)
+    lessons = await service.get_lessons(group_id=user_group_id, date=date)
+    user_group_name = await repo.get_user_group_name(user_id=user_id)
+    reformatted_lessons = reformat_lessons(lessons, date, locale, user_group_name)
     await msg.edit_text(**reformatted_lessons.as_kwargs(), reply_markup=get_lessons_keyboard(week))
