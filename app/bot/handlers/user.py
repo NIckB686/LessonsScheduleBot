@@ -1,20 +1,20 @@
 import logging
 from typing import TYPE_CHECKING
 
-from aiogram import Bot, Router
+from aiogram import Bot, F, Router
 from aiogram.enums import BotCommandScopeType
-from aiogram.filters import KICKED, ChatMemberUpdatedFilter, Command, CommandStart
+from aiogram.filters import KICKED, ChatMemberUpdatedFilter, Command, CommandStart, StateFilter
 from aiogram.types import BotCommandScopeChat, CallbackQuery, ChatMemberUpdated, Message
-from aiogram_dialog import DialogManager, StartMode
-from aiogram_dialog.manager.bg_manager import BgManager
 
-from app.bot.callback import ScheduleCallbackFactory
+from app.bot.callback import GroupCallbackFactory, ScheduleCallbackFactory
 from app.bot.FSM.states import FSMRegistration
-from app.bot.handlers.dialogs.registration import load_groups
 from app.bot.keyboards.main_menu import get_main_menu_commands
+from app.bot.keyboards.register import get_group_keyboard
 from app.bot.services.show_schedule import show_schedule
 
 if TYPE_CHECKING:
+    from aiogram.fsm.context import FSMContext
+
     from app.api import ScheduleService
     from app.db.requests.users import SQLRepo
 
@@ -50,24 +50,38 @@ async def process_start_command(
 @user_router.message(Command(commands="register"))
 async def process_register(
     message: Message,
-    dialog_manager: DialogManager,
     schedule_service: ScheduleService,
+    state: FSMContext,
     locale: dict[str, str],
 ):
-    await dialog_manager.start(
-        FSMRegistration.loading,
-        mode=StartMode.RESET_STACK,
-        data={"locale": locale},
+    msg = await message.reply(locale["/register_loading"])
+    kb = await get_group_keyboard(schedule_service)
+    await msg.edit_text(text=locale["/register"], reply_markup=kb)
+    await state.set_state(FSMRegistration.fill_group)
+
+
+@user_router.callback_query(GroupCallbackFactory.filter())
+async def proces_group_press(
+    callback: CallbackQuery,
+    state: FSMContext,
+    repo: SQLRepo,
+    callback_data: GroupCallbackFactory,
+    locale: dict[str, str],
+):
+    group_id = callback_data.group_id
+    await repo.update_user_group(
+        user_id=callback.from_user.id,
+        group_id=group_id,
     )
-    bg = BgManager(
-        user=dialog_manager.middleware_data["event_from_user"],
-        chat=dialog_manager.middleware_data["event_chat"],
-        bot=dialog_manager.middleware_data["bot"],
-        router=user_router,
-        intent_id=dialog_manager.current_context().id,
-        stack_id=dialog_manager.current_stack().id,
-    )
-    await load_groups(bg, schedule_service)
+    await state.clear()
+    await callback.message.edit_text(locale["/register_successful"])  # ty:ignore[unresolved-attribute]
+
+
+# этот хендлер срабатывает если пользователь нажимает на кнопку отмены при выборе группы и сбрасывает состояние
+@user_router.callback_query(StateFilter(FSMRegistration.fill_group), F.data.in_(["cancel"]))
+async def process_cancel_registration(state: FSMContext, callback: CallbackQuery):
+    await callback.message.delete()  # ty:ignore[unresolved-attribute]
+    await state.clear()
 
 
 @user_router.message(Command(commands="schedule"))
